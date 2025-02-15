@@ -1,0 +1,117 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Partner {
+  id: Int!
+  name: String!
+  phone: Int!
+  campaigns: [Campaign!]
+}
+
+type Ad {
+  id: Int!
+  title: String!
+  content: String!
+  type: String!
+  status: String!
+  campaign: Campaign!
+}
+
+type Campaign {
+  id: Int!
+  name: String!
+  description: String!
+  startDate: DateTime!
+  endDate: DateTime!
+  status: String!
+  ads: [Ad!]
+  users: [User!]
+  partners: [Partner!]
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type User {
+  id: Int!
+  username: String!
+  email: String!
+  joinedCampaigns: [Campaign!]!
+}
+
+type AuthOutPut {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  user: User!
+  token: String!
+}
+
+type AuthResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: AuthOutPut
+}
+
+type UserResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: User
+}
+
+type Query {
+  sayHello: String!
+  getUserById(id: Float!): UserResponse!
+  getUserByEmail(email: String!): UserResponse!
+  getUserByusername(username: String!): UserResponse!
+  deleteUser: String!
+}
+
+type Mutation {
+  register(fcmToken: String!, createUserDto: CreateUserDto!): AuthResponse!
+  login(fcmToken: String!, loginDto: LoginDto!): AuthResponse!
+  forgotPassword(email: String!): String!
+  resetPassword(resetPasswordDto: ResetPasswordDto!): String!
+  changePassword(changePasswordDto: ChangePasswordDto!): String!
+  adminLogin(fcmToken: String!, loginDto: LoginDto!): AuthResponse!
+  managerLogin(fcmToken: String!, loginDto: LoginDto!): AuthResponse!
+  logout: Boolean!
+  updateUser(updateUserDto: UpdateUserDto!): UserResponse!
+  UpdateUserRole(checkEmail: String!, companyId: Float!): String!
+}
+
+input CreateUserDto {
+  username: String!
+  email: String!
+  password: String!
+  campaignId: Float!
+}
+
+input LoginDto {
+  email: String!
+  password: String!
+}
+
+input ResetPasswordDto {
+  token: String!
+  password: String!
+}
+
+input ChangePasswordDto {
+  password: String!
+  newPassword: String!
+}
+
+input UpdateUserDto {
+  username: String
+  email: String
+  phone: String
+}

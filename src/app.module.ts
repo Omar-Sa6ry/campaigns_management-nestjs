@@ -10,6 +10,7 @@ import { AppResolver } from './app.resolver'
 import { PartnerModule } from './modules/partner/partner.module'
 import { AdModule } from './modules/ad/ad.module'
 import { CampaignModule } from './modules/campaign/campaign.module'
+import { UserCampaignModule } from './modules/userCampaign/userCampaign.module'
 
 @Module({
   imports: [
@@ -22,9 +23,10 @@ import { CampaignModule } from './modules/campaign/campaign.module'
     UserModule,
     PartnerModule,
     CampaignModule,
+    UserCampaignModule,
     AdModule,
   ],
 
-  providers: [AppService, AppResolver, ],
+  providers: [AppService, AppResolver],
 })
 export class AppModule {}

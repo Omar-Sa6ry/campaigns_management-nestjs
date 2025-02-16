@@ -17,8 +17,4 @@ export class CreateUserDto {
   @IsString()
   @Length(8, 16, { message: PasswordValidator })
   password: string
-
-  @Field()
-  @IsInt()
-  campaignId: number
 }

@@ -28,6 +28,7 @@ import {
   SamePassword,
 } from 'src/common/constant/messages.constant'
 import { User } from '../users/entity/user.entity'
+import { AuthInput } from './dtos/AuthRes.dto'
 
 @Injectable()
 export class AuthService {
@@ -39,7 +40,10 @@ export class AuthService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
-  async register (fcmToken: string, createUserDto: CreateUserDto) {
+  async register (
+    fcmToken: string,
+    createUserDto: CreateUserDto,
+  ): Promise<AuthInput> {
     const { username, email } = createUserDto
     if (!email.endsWith('@gmail.com')) {
       throw new BadRequestException(EndOfEmail)

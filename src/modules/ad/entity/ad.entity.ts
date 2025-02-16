@@ -25,7 +25,7 @@ export class Ad {
   @Field()
   status: string
 
-  @ManyToOne(() => Campaign, campaign => campaign.ads, { nullable: true })
+  @ManyToOne(() => Campaign, campaign => campaign.id, { nullable: true })
   @Field(() => Campaign)
   campaign: Campaign
 }

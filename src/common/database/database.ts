@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { Ad } from 'src/modules/ad/entity/ad.entity'
 import { Campaign } from 'src/modules/campaign/entity/campaign.entity'
 import { Partner } from 'src/modules/partner/entity/partner.entity'
+import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
 import { User } from 'src/modules/users/entity/user.entity'
 
 @Module({
@@ -17,7 +18,7 @@ import { User } from 'src/modules/users/entity/user.entity'
         username: configService.get<string>('DB_username'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [User, Campaign, Partner, Ad],
+        entities: [User, Campaign, UserCampaign, Partner, Ad],
         synchronize: true,
         logging: false,
       }),

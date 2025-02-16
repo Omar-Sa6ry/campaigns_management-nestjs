@@ -1,5 +1,8 @@
+import { Transform } from 'class-transformer'
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { Partner } from '../../partner/entity/partner.entity'
+import { CampaignStatus } from 'src/common/constant/enum.constant'
+import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
 import { Ad } from '../../ad/entity/ad.entity'
 import {
   Entity,
@@ -8,11 +11,17 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
+  CreateDateColumn,
+  Index,
 } from 'typeorm'
-import { User } from 'src/modules/users/entity/user.entity'
 
 @ObjectType()
 @Entity()
+@Index('idx_campaign_name', ['name'])
+@Index('idx_campaign_status', ['status'])
+@Index('idx_campaign_start_date', ['startDate'])
+@Index('idx_campaign_end_date', ['endDate'])
+@Index('idx_campaign_created_at', ['createdAt'])
 export class Campaign {
   @PrimaryGeneratedColumn()
   @Field(() => Int)
@@ -26,26 +35,39 @@ export class Campaign {
   @Field()
   description: string
 
-  @Column({ type: 'date' })
+  @Column({ type: 'timestamp' })
   @Field()
   startDate: Date
 
-  @Column({ type: 'date' })
+  @Column({ type: 'timestamp' })
   @Field()
   endDate: Date
 
-  @Column({ length: 50 })
+  @Column({
+    type: 'enum',
+    enum: CampaignStatus,
+    default: CampaignStatus.PENDING,
+  })
   @Field()
-  status: string
+  status: CampaignStatus
+
+  @CreateDateColumn({ type: 'timestamp' })
+  @Transform(({ value }) => (value ? new Date(value).toLocaleString() : null), {
+    toClassOnly: true,
+  })
+  @Field()
+  createdAt: Date
 
   @OneToMany(() => Ad, ad => ad.campaign, { nullable: true })
   @Field(() => [Ad], { nullable: true })
   ads: Ad[]
 
-  @ManyToMany(() => User, user => user.joinedCampaigns, { nullable: true })
-  @JoinTable()
-  @Field(() => [User], { nullable: true })
-  users: User[]
+  @OneToMany(() => UserCampaign, userCampaign => userCampaign.campaign, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @Field(() => [UserCampaign], { nullable: true })
+  joinedCampaigns: UserCampaign[]
 
   @ManyToMany(() => Partner, partner => partner.campaigns, { nullable: true })
   @JoinTable()

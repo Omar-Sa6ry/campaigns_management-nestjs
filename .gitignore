@@ -3,6 +3,7 @@
 /node_modules
 /build
 /images
+/api
 
 # Docker files
 docker-compose.override.yml

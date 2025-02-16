@@ -10,4 +10,8 @@ export class PaginationInfo {
   @Field(() => Int)
   @Expose()
   currentPage: number
+
+  @Field(() => Int)
+  @Expose()
+  totalItems: number
 }

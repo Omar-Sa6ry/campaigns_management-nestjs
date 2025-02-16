@@ -1,8 +1,15 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToMany,
+  OneToMany,
+} from 'typeorm'
 import { Exclude } from 'class-transformer'
 import { Role } from 'src/common/constant/enum.constant'
 import { Campaign } from 'src/modules/campaign/entity/campaign.entity'
+import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
 
 @ObjectType()
 @Entity()
@@ -43,7 +50,10 @@ export class User {
   @Exclude()
   fcmToken: string
 
-  @ManyToMany(() => Campaign, campaign => campaign.users, { nullable: true })
-  @Field(() => [Campaign])
-  joinedCampaigns: Campaign[]
+  @OneToMany(() => UserCampaign, userCampaign => userCampaign.user, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @Field(() => [UserCampaign], { nullable: true })
+  joinedCampaigns: UserCampaign[]
 }

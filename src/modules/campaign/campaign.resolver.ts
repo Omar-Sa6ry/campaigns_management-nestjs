@@ -3,7 +3,7 @@ import { CampaignService } from './campaign.service'
 import { Campaign } from './entity/campaign.entity'
 import { RedisService } from 'src/common/redis/redis.service'
 import { CreateCampaignCDto } from './dtos/CreateCampaign.dto'
-import { CampaignCDto } from './dtos/Campaign.dto'
+import { CampaignDto } from './dtos/Campaign.dto'
 import { Auth } from 'src/common/decerator/auth.decerator'
 import { Role } from 'src/common/constant/enum.constant'
 import { CampaignResponse, CampaignsResponse } from './dtos/CampaignResponse'
@@ -51,24 +51,11 @@ export class CampaignResolver {
   @Query(() => CampaignsResponse)
   @Auth(Role.USER, Role.ADMIN, Role.MANAGER)
   async getCampaigns (
-    @Args('campaignDto') campaignDto: CampaignCDto,
+    @Args('campaignDto') campaignDto: CampaignDto,
     @Args('page', { type: () => Int, nullable: true }) page?: number,
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
   ): Promise<CampaignsResponse> {
-    const data = await this.campaignService.getCampaign(
-      campaignDto,
-      page,
-      limit,
-    )
-
-    return {
-      items: data.items,
-      pagination: {
-        currentPage: data.page,
-        totalPages: data.totalPages,
-        totalItems: data.total,
-      },
-    }
+    return await this.campaignService.getCampaign(campaignDto, page, limit)
   }
 
   @Query(() => CampaignsResponse)
@@ -77,23 +64,14 @@ export class CampaignResolver {
     @Args('page', { type: () => Int, nullable: true }) page?: number,
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
   ): Promise<CampaignsResponse> {
-    const data = await this.campaignService.listCampaign(page, limit)
-
-    return {
-      items: data.items,
-      pagination: {
-        currentPage: data.page,
-        totalPages: data.totalPages,
-        totalItems: data.total,
-      },
-    }
+    return await this.campaignService.listCampaign(page, limit)
   }
 
   @Mutation(() => CampaignResponse)
   @Auth(Role.USER, Role.ADMIN, Role.MANAGER)
   async UpdateCampaign (
     @Args('id', { type: () => Int }) id: number,
-    @Args('updateCampaignDto') updateCampaignDto: CampaignCDto,
+    @Args('updateCampaignDto') updateCampaignDto: CampaignDto,
   ): Promise<CampaignResponse> {
     return {
       message: UpdatedCampaign,

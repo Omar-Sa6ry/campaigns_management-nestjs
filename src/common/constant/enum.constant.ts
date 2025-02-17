@@ -14,3 +14,20 @@ export enum CampaignStatus {
   CANCELLED = 'cancelled',
   REJECTED = 'rejected',
 }
+
+export enum AdType {
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+  TEXT = 'TEXT',
+  BANNER = 'BANNER',
+}
+
+export enum AdStatus {
+  DRAFT = 'DRAFT',
+  PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
+  PAUSED = 'PAUSED',
+  EXPIRED = 'EXPIRED',
+  REJECTED = 'REJECTED',
+  ARCHIVED = 'ARCHIVED',
+}

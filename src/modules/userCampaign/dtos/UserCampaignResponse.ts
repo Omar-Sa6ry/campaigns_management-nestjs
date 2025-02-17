@@ -3,11 +3,9 @@ import { Expose } from 'class-transformer'
 import { BaseResponse } from 'src/common/dtos/BaseResponse'
 import { IsInt, IsOptional } from 'class-validator'
 import { PaginationInfo } from 'src/common/dtos/pagintion'
-import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
-import { UserCampaignsInput } from '../../campaign/inputs/UserCampaign.input'
-import { UserCampaignInput } from '../../campaign/inputs/userCampainInput'
 import { User } from 'src/modules/users/entity/user.entity'
-import { Campaign } from '../../campaign/entity/campaign.entity'
+import { CampaignOutput } from 'src/modules/campaign/dtos/CampaignResponse'
+import { CampaignInput } from 'src/modules/campaign/inputs/campain.input'
 
 @ObjectType()
 export class UserCampaignOutput extends BaseResponse {
@@ -18,8 +16,8 @@ export class UserCampaignOutput extends BaseResponse {
   @Field(() => User)
   user: User
 
-  @Field(() => Campaign)
-  campaign: Campaign
+  @Field(() => CampaignOutput)
+  campaign: CampaignInput
 
   @Field()
   joinAt: Date
@@ -27,9 +25,9 @@ export class UserCampaignOutput extends BaseResponse {
 
 @ObjectType()
 export class UserCampaignsResponse extends BaseResponse {
-  @Field(() => [UserCampaign], { nullable: true })
+  @Field(() => [UserCampaignOutput], { nullable: true })
   @Expose()
-  items: UserCampaign[]
+  items: UserCampaignOutput[]
 
   @IsOptional()
   @Field(() => PaginationInfo, { nullable: true })

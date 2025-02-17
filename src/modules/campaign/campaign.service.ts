@@ -2,12 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { WebSocketMessageGateway } from 'src/common/websocket/websocket.gateway'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Campaign } from './entity/campaign.entity'
-import { DataSource, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 import { CreateCampaignCDto } from './dtos/CreateCampaign.dto'
+import { CampaignInput } from './inputs/campain.input'
+import { Ad } from '../ad/entity/ad.entity'
+import { AdLoader } from 'src/common/loaders/ad.loader'
 import { RedisService } from 'src/common/redis/redis.service'
-import { CampaignCDto } from './dtos/Campaign.dto'
+import { CampaignDto } from './dtos/Campaign.dto'
 import { CampaignsInput } from './inputs/Campaigns.input'
 import {
+  AdNotFound,
   CampaignNotFound,
   CampaignsNotFound,
   DeleteCamapaign,
@@ -16,14 +20,16 @@ import {
 @Injectable()
 export class CampaignService {
   constructor (
-    private readonly dataSource: DataSource,
+    private adLoader: AdLoader,
     private readonly redisService: RedisService,
     private readonly websocketGateway: WebSocketMessageGateway,
+    @InjectRepository(Ad)
+    private adRepo: Repository<Ad>,
     @InjectRepository(Campaign)
     private campaignRepo: Repository<Campaign>,
   ) {}
 
-  async create (createCampaign: CreateCampaignCDto): Promise<Campaign> {
+  async create (createCampaign: CreateCampaignCDto): Promise<CampaignInput> {
     const query = this.campaignRepo.manager.connection.createQueryRunner()
     await query.startTransaction()
 
@@ -55,21 +61,24 @@ export class CampaignService {
     }
   }
 
-  async getCampainById (id: number): Promise<Campaign> {
+  async getCampainById (id: number): Promise<CampaignInput> {
     const campaign = await this.campaignRepo.findOne({
       where: { id },
       relations: ['ads', 'partners', 'joinedCampaigns'],
     })
     if (!campaign) throw new NotFoundException(CampaignNotFound)
 
-    const relationCacheKey = `campaign:${campaign.id}`
-    await this.redisService.set(relationCacheKey, campaign)
+    const ads = await this.adRepo.find({ where: { campaignId: campaign.id } })
+    const result = { ...campaign, ads: ads }
 
-    return campaign
+    const relationCacheKey = `campaign:${campaign.id}`
+    await this.redisService.set(relationCacheKey, result)
+
+    return result
   }
 
   async getCampaign (
-    CampaignDto: CampaignCDto,
+    CampaignDto: CampaignDto,
     page: number = 1,
     limit: number = 10,
   ): Promise<CampaignsInput> {
@@ -82,8 +91,39 @@ export class CampaignService {
     })
     if (campaigns.length == 0) throw new NotFoundException(CampaignsNotFound)
 
+    const adIds = campaigns.map(ad => ad.id)
+    const ads = await this.adLoader.loadMany(adIds)
+
+    const items: CampaignInput[] = campaigns.map((campaign, index) => {
+      const ad = ads[index]
+      if (!ad) throw new NotFoundException(AdNotFound)
+
+      return {
+        id: campaign.id,
+        name: campaign.name,
+        description: campaign.description,
+        status: campaign.status,
+        startDate: campaign.startDate,
+        endDate: campaign.endDate,
+        createdAt: campaign.createdAt,
+        ads: [
+          {
+            id: ad.id,
+            type: ad.type,
+            status: ad.status,
+            url: ad.url,
+            content: ad.content,
+            title: ad.title,
+            createdAt: ad.createdAt,
+
+            campaign,
+          },
+        ],
+      }
+    })
+
     return {
-      items: campaigns,
+      items,
       total,
       page,
       totalPages: Math.ceil(total / limit),
@@ -101,8 +141,39 @@ export class CampaignService {
     })
     if (campaigns.length == 0) throw new NotFoundException(CampaignsNotFound)
 
+    const adIds = campaigns.map(ad => ad.id)
+    const ads = await this.adLoader.loadMany(adIds)
+
+    const items: CampaignInput[] = campaigns.map((campaign, index) => {
+      const ad = ads[index]
+      if (!ad) throw new NotFoundException(AdNotFound)
+
+      return {
+        id: campaign.id,
+        name: campaign.name,
+        description: campaign.description,
+        status: campaign.status,
+        startDate: campaign.startDate,
+        endDate: campaign.endDate,
+        createdAt: campaign.createdAt,
+        ads: [
+          {
+            id: ad.id,
+            type: ad.type,
+            status: ad.status,
+            url: ad.url,
+            content: ad.content,
+            title: ad.title,
+            createdAt: ad.createdAt,
+
+            campaign,
+          },
+        ],
+      }
+    })
+
     return {
-      items: campaigns,
+      items,
       total,
       page,
       totalPages: Math.ceil(total / limit),
@@ -111,8 +182,8 @@ export class CampaignService {
 
   async updateCampaign (
     id: number,
-    updateCampaignDto: CampaignCDto,
-  ): Promise<Campaign> {
+    updateCampaignDto: CampaignDto,
+  ): Promise<CampaignInput> {
     const campaign = await this.getCampainById(id)
     if (!campaign) throw new NotFoundException(CampaignNotFound)
 
@@ -125,7 +196,7 @@ export class CampaignService {
   }
 
   async deleteCampaign (id: number): Promise<string> {
-    const campaign = await this.getCampainById(id)
+    const campaign = await this.campaignRepo.findOne({ where: { id } })
     if (!campaign) throw new NotFoundException(CampaignNotFound)
 
     await this.campaignRepo.remove(campaign)

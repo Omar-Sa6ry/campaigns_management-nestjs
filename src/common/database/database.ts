@@ -20,7 +20,7 @@ import { User } from 'src/modules/users/entity/user.entity'
         database: configService.get<string>('DB_NAME'),
         entities: [User, Campaign, UserCampaign, Partner, Ad],
         synchronize: true,
-        logging: false,
+        logging: true
       }),
       inject: [ConfigService],
     }),

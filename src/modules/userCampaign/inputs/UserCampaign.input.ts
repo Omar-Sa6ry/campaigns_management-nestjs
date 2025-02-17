@@ -1,11 +1,10 @@
 import { Field, InputType, Int } from '@nestjs/graphql'
-import { BaseResponse } from 'src/common/dtos/BaseResponse'
-import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
+import { UserCampaignInput } from './userCampainInput'
 
 @InputType()
-export class UserCampaignsInput extends BaseResponse {
-  @Field(() => [UserCampaign], { nullable: true })
-  items: UserCampaign[]
+export class UserCampaignsInput {
+  @Field(() => [UserCampaignInput], { nullable: true })
+  items: UserCampaignInput[]
 
   @Field(() => Int)
   total: number

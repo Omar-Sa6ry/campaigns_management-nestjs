@@ -28,6 +28,16 @@ export const UpdatedCampaign = 'Campaign is updated sucessfully'
 export const YouRemoveCampaign = 'You leave the Campaign'
 export const UserJoin = 'User is Joined Sucessfully'
 
+// Ad
+export const AdUrlForYouType = 'Please,Add yout url type'
+export const AdNotFound = 'Ad not found'
+export const AdsNotFound = 'Ads not found'
+export const CreateAd = 'Ad is created sucessfully'
+export const DeleteAd = 'Ad is deleted sucessfully'
+
+// Image
+export const ImageError = 'Image upload failed:'
+
 // Decerator
 export const CurrentUserMsg = 'User not found in request'
 

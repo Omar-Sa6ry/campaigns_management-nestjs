@@ -62,19 +62,7 @@ export class UserCampaignResolver {
       return { ...cachedCampaign }
     }
 
-    const data = await this.userCampaignService.getUserCampaign(
-      userId,
-      page,
-      limit,
-    )
-    return {
-      items: data.items,
-      pagination: {
-        currentPage: data.page,
-        totalPages: data.totalPages,
-        totalItems: data.total,
-      },
-    }
+    return await this.userCampaignService.getUserCampaign(userId, page, limit)
   }
 
   @Query(() => UserCampaignsResponse)
@@ -90,19 +78,11 @@ export class UserCampaignResolver {
       return { ...cachedCampaign }
     }
 
-    const data = await this.userCampaignService.getCampaignFromUser(
+    return await this.userCampaignService.getCampaignFromUser(
       campaignId,
       page,
       limit,
     )
-    return {
-      items: data.items,
-      pagination: {
-        currentPage: data.page,
-        totalPages: data.totalPages,
-        totalItems: data.total,
-      },
-    }
   }
 
   @Mutation(() => String)

@@ -15,8 +15,16 @@ type Ad {
   content: String!
   type: String!
   status: String!
+  campaignId: Int!
+  createdAt: DateTime!
+  updateAt: DateTime!
   campaign: Campaign!
 }
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
 
 type Campaign {
   id: Int!
@@ -26,15 +34,11 @@ type Campaign {
   endDate: DateTime!
   status: String!
   createdAt: DateTime!
+  updateAt: DateTime!
   ads: [Ad!]
   joinedCampaigns: [UserCampaign!]
   partners: [Partner!]
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 type UserCampaign {
   id: Int!
@@ -134,13 +138,21 @@ type Query {
   getUserByusername(username: String!): UserResponse!
   deleteUser: String!
   getCampaignById(id: Int!): UserCampaignResponse!
-  getCampaigns(campaignDto: CampaignCDto!, page: Int, limit: Int): CampaignsResponse!
+  getCampaigns(
+    campaignDto: CampaignDto!
+    page: Int
+    limit: Int
+  ): CampaignsResponse!
   getListCampaigns(page: Int, limit: Int): CampaignsResponse!
   getUserCampaigns(userId: Int!, page: Int, limit: Int): UserCampaignsResponse!
-  getCampaignsFromUser(campaignId: Int!, page: Int, limit: Int): UserCampaignsResponse!
+  getCampaignsFromUser(
+    campaignId: Int!
+    page: Int
+    limit: Int
+  ): UserCampaignsResponse!
 }
 
-input CampaignCDto {
+input CampaignDto {
   name: String
   description: String
   startDate: DateTime
@@ -159,7 +171,7 @@ type Mutation {
   updateUser(updateUserDto: UpdateUserDto!): UserResponse!
   UpdateUserRole(checkEmail: String!, companyId: Float!): String!
   createCampaign(createCampaignDto: CreateCampaignCDto!): CampaignResponse!
-  UpdateCampaign(id: Int!, updateCampaignDto: CampaignCDto!): CampaignResponse!
+  UpdateCampaign(id: Int!, updateCampaignDto: CampaignDto!): CampaignResponse!
   deleteCampaign(id: Int!): CampaignResponse!
   joinCampaign(userId: Int!, campaignId: Int!): UserCampaignResponse!
   deleteUserFromCampaign: String!

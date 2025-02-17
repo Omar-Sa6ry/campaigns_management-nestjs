@@ -13,6 +13,7 @@ import {
   JoinTable,
   CreateDateColumn,
   Index,
+  UpdateDateColumn,
 } from 'typeorm'
 
 @ObjectType()
@@ -57,6 +58,13 @@ export class Campaign {
   })
   @Field()
   createdAt: Date
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  @Transform(({ value }) => (value ? new Date(value).toLocaleString() : null), {
+    toClassOnly: true,
+  })
+  @Field()
+  updateAt: Date
 
   @OneToMany(() => Ad, ad => ad.campaign, { nullable: true })
   @Field(() => [Ad], { nullable: true })

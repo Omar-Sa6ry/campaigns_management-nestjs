@@ -2,7 +2,7 @@ import { Field, InputType } from '@nestjs/graphql'
 import { IsString, IsDate, IsOptional } from 'class-validator'
 
 @InputType()
-export class CampaignCDto {
+export class CampaignDto {
   @IsOptional()
   @Field({ nullable: true })
   @IsString()
@@ -22,4 +22,9 @@ export class CampaignCDto {
   @Field(() => Date, { nullable: true })
   @IsDate()
   endDate?: Date
+
+  @IsOptional()
+  @Field(() => Date, { nullable: true })
+  @IsDate()
+  createdAt?: Date
 }

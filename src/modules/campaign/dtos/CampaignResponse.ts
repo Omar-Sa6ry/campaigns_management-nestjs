@@ -5,6 +5,7 @@ import { IsOptional } from 'class-validator'
 import { PaginationInfo } from 'src/common/dtos/pagintion'
 import { AdInput } from 'src/modules/ad/dtos/adInput.dto'
 import { AdOutput } from 'src/modules/ad/dtos/adResponse.dto'
+import { Partner } from 'src/modules/partner/entity/partner.entity'
 
 @ObjectType()
 export class CampaignOutput {
@@ -31,6 +32,9 @@ export class CampaignOutput {
 
   @Field(() => [AdOutput], { nullable: true })
   ads: AdInput[]
+
+  @Field(() => [Partner], { nullable: true })
+  partners: Partner[]
 }
 
 @ObjectType()

@@ -10,10 +10,12 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { AdInput, AdsInput } from './dtos/adInput.dto'
 import { CampaignService } from '../campaign/campaign.service'
 import { AdDto } from './dtos/Ad.dto'
-import { CampaignLoader } from 'src/common/loaders/campaign.loader'
+import { CampaignLoader } from 'src/modules/campaign/loader/campaign.loader'
 import { Campaign } from '../campaign/entity/campaign.entity'
 import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
-import { AdLoader } from 'src/common/loaders/ad.loader'
+import { Partner } from '../partner/entity/partner.entity'
+import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
+import { AdLoader } from 'src/modules/ad/loader/ad.loader'
 import { CampaignInput } from '../campaign/inputs/campain.input'
 import { Repository } from 'typeorm'
 import { CreateImagDto } from 'src/common/upload/dtos/createImage.dto'
@@ -34,6 +36,7 @@ import {
 export class AdService {
   constructor (
     private adLoader: AdLoader,
+    private partnerLoader: PartnerLoader,
     private campaignLoader: CampaignLoader,
     private readonly redisService: RedisService,
     private readonly uploadService: UploadService,
@@ -43,6 +46,8 @@ export class AdService {
     private adRepo: Repository<Ad>,
     @InjectRepository(Campaign)
     private campaignRepo: Repository<Campaign>,
+    @InjectRepository(Partner)
+    private partnerRepo: Repository<Partner>,
     @InjectRepository(UserCampaign)
     private userCampaignRepo: Repository<UserCampaign>,
   ) {}
@@ -79,15 +84,22 @@ export class AdService {
       })
       await this.adRepo.save(ad)
 
+      const ads = await this.adRepo.find({
+        where: { campaignId: campaign.id },
+        relations: ['campaign'],
+      })
+
+      const partners = await this.partnerRepo.find({
+        where: { campaignId: campaign.id },
+      })
+
       const resilt: AdInput = {
-        id: ad.id,
-        type: ad.type,
-        status: ad.status,
-        url: ad.url,
-        content: ad.content,
-        title: ad.title,
-        createdAt: ad.createdAt,
-        campaign,
+        ...ad,
+        campaign: {
+          ...campaign,
+          partners,
+          ads,
+        },
       }
 
       const relationCacheKey = `ad:${ad.id}`
@@ -118,15 +130,18 @@ export class AdService {
     const campaign = await this.campaignService.getCampainById(ad.campaignId)
     if (!campaign) throw new NotFoundException(CampaignNotFound)
 
+    const ads = await this.adRepo.find({
+      where: { campaignId: campaign.id },
+      relations: ['campaign'],
+    })
+
+    const partners = await this.partnerRepo.find({
+      where: { campaignId: campaign.id },
+    })
+
     const result: AdInput = {
-      id: ad.id,
-      type: ad.type,
-      status: ad.status,
-      url: ad.url,
-      content: ad.content,
-      title: ad.title,
-      createdAt: ad.createdAt,
-      campaign,
+      ...ad,
+      campaign: { ...campaign, ads, partners },
     }
 
     const relationCacheKey = `ad:${ad.id}`
@@ -152,27 +167,24 @@ export class AdService {
     const campaignIds = data.map(ad => ad.campaignId)
     const campaigns = await this.campaignLoader.loadMany(campaignIds)
 
-    const adIds = campaigns.map(ad => ad.id)
+    const adIds = campaigns.map(campaign => campaign.id)
     const ads = await this.adLoader.loadMany(adIds)
+
+    const partnerIds = campaigns.map(campaign => campaign.id)
+    const partners = await this.partnerLoader.loadMany(partnerIds)
 
     const items = ads.map((ad, index) => {
       const campaign = campaigns[index]
       if (!campaign) throw new NotFoundException(CampaignNotFound)
 
-      const adCampaign = ads[index]
-      if (!adCampaign) throw new NotFoundException(AdNotFound)
-
       return {
-        id: ad.id,
-        type: ad.type,
-        status: ad.status,
-        url: ad.url,
-        content: ad.content,
-        title: ad.title,
-        createdAt: ad.createdAt,
+        ...ad,
         campaign: {
           ...campaign,
-          ads: [adCampaign],
+          ads: ads.filter(ad => ad.campaignId === campaign.id),
+          partners: partners.filter(
+            partner => partner.campaignId === campaign.id,
+          ),
         },
       }
     })
@@ -200,24 +212,21 @@ export class AdService {
     const adIds = campaigns.map(ad => ad.id)
     const ads = await this.adLoader.loadMany(adIds)
 
+    const partnerIds = campaigns.map(campaign => campaign.id)
+    const partners = await this.partnerLoader.loadMany(partnerIds)
+
     const items = ads.map((ad, index) => {
       const campaign = campaigns[index]
       if (!campaign) throw new NotFoundException(CampaignNotFound)
 
-      const adCampaign = ads[index]
-      if (!adCampaign) throw new NotFoundException(AdNotFound)
-
       return {
-        id: ad.id,
-        type: ad.type,
-        status: ad.status,
-        url: ad.url,
-        content: ad.content,
-        title: ad.title,
-        createdAt: ad.createdAt,
+        ...ad,
         campaign: {
           ...campaign,
-          ads: [adCampaign],
+          ads: ads.filter(ad => ad.campaignId === campaign.id),
+          partners: partners.filter(
+            partner => partner.campaignId === campaign.id,
+          ),
         },
       }
     })
@@ -245,6 +254,10 @@ export class AdService {
 
     const campaignIds = userCampaigns.map(ad => ad.campaignId)
     const campaigns = await this.campaignLoader.loadMany(campaignIds)
+
+    const partnerIds = campaigns.map(campaign => campaign.id)
+    const partners = await this.partnerLoader.loadMany(partnerIds)
+
     const adIds = campaigns.map(ad => ad.id)
     const ads = await this.adLoader.loadMany(adIds)
 
@@ -256,16 +269,13 @@ export class AdService {
       if (!campaign) throw new NotFoundException(CampaignNotFound)
 
       return {
-        id: ad.id,
-        type: ad.type,
-        status: ad.status,
-        url: ad.url,
-        content: ad.content,
-        title: ad.title,
-        createdAt: ad.createdAt,
+        ...ad,
         campaign: {
           ...campaign,
-          ads: [adCampaign],
+          ads: ads.filter(ad => ad.campaignId === campaign.id),
+          partners: partners.filter(
+            partner => partner.campaignId === campaign.id,
+          ),
         },
       }
     })
@@ -293,9 +303,13 @@ export class AdService {
       where: { campaignId: campaign.id },
       relations: ['campaign'],
     })
-    if (!ads) throw new NotFoundException(AdsNotFound)
 
-    const result: CampaignInput = { ...campaign, ads }
+    const partners = await this.partnerRepo.find({
+      where: { campaignId: campaign.id },
+      relations: ['campaign'],
+    })
+
+    const result: CampaignInput = { ...campaign, ads, partners }
 
     const relationCacheKey = `ad:${ad.id}`
     await this.redisService.set(relationCacheKey, result)

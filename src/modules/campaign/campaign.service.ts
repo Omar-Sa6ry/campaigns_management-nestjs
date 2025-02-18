@@ -6,12 +6,13 @@ import { Repository } from 'typeorm'
 import { CreateCampaignCDto } from './dtos/CreateCampaign.dto'
 import { CampaignInput } from './inputs/campain.input'
 import { Ad } from '../ad/entity/ad.entity'
-import { AdLoader } from 'src/common/loaders/ad.loader'
+import { AdLoader } from 'src/modules/ad/loader/ad.loader'
 import { RedisService } from 'src/common/redis/redis.service'
+import { Partner } from '../partner/entity/partner.entity'
+import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
 import { CampaignDto } from './dtos/Campaign.dto'
 import { CampaignsInput } from './inputs/Campaigns.input'
 import {
-  AdNotFound,
   CampaignNotFound,
   CampaignsNotFound,
   DeleteCamapaign,
@@ -21,12 +22,15 @@ import {
 export class CampaignService {
   constructor (
     private adLoader: AdLoader,
+    private partnerLoader: PartnerLoader,
     private readonly redisService: RedisService,
     private readonly websocketGateway: WebSocketMessageGateway,
     @InjectRepository(Ad)
     private adRepo: Repository<Ad>,
     @InjectRepository(Campaign)
     private campaignRepo: Repository<Campaign>,
+    @InjectRepository(Partner)
+    private partnerRepo: Repository<Partner>,
   ) {}
 
   async create (createCampaign: CreateCampaignCDto): Promise<CampaignInput> {
@@ -68,8 +72,12 @@ export class CampaignService {
     })
     if (!campaign) throw new NotFoundException(CampaignNotFound)
 
+    const partner = await this.partnerRepo.find({
+      where: { campaignId: campaign.id },
+    })
     const ads = await this.adRepo.find({ where: { campaignId: campaign.id } })
-    const result = { ...campaign, ads: ads }
+
+    const result = { ...campaign, ads, partner }
 
     const relationCacheKey = `campaign:${campaign.id}`
     await this.redisService.set(relationCacheKey, result)
@@ -91,34 +99,19 @@ export class CampaignService {
     })
     if (campaigns.length == 0) throw new NotFoundException(CampaignsNotFound)
 
-    const adIds = campaigns.map(ad => ad.id)
+    const adIds = campaigns.map(campaign => campaign.id)
     const ads = await this.adLoader.loadMany(adIds)
 
+    const partnerIds = campaigns.map(campaign => campaign.id)
+    const partners = await this.partnerLoader.loadMany(partnerIds)
+
     const items: CampaignInput[] = campaigns.map((campaign, index) => {
-      const ad = ads[index]
-      if (!ad) throw new NotFoundException(AdNotFound)
-
       return {
-        id: campaign.id,
-        name: campaign.name,
-        description: campaign.description,
-        status: campaign.status,
-        startDate: campaign.startDate,
-        endDate: campaign.endDate,
-        createdAt: campaign.createdAt,
-        ads: [
-          {
-            id: ad.id,
-            type: ad.type,
-            status: ad.status,
-            url: ad.url,
-            content: ad.content,
-            title: ad.title,
-            createdAt: ad.createdAt,
-
-            campaign,
-          },
-        ],
+        ...campaign,
+        ads: ads.filter(ad => ad.campaignId === campaign.id),
+        partners: partners.filter(
+          partner => partner.campaignId === campaign.id,
+        ),
       }
     })
 
@@ -141,34 +134,19 @@ export class CampaignService {
     })
     if (campaigns.length == 0) throw new NotFoundException(CampaignsNotFound)
 
-    const adIds = campaigns.map(ad => ad.id)
+    const adIds = campaigns.map(campaign => campaign.id)
     const ads = await this.adLoader.loadMany(adIds)
 
+    const partnerIds = campaigns.map(campaign => campaign.id)
+    const partners = await this.partnerLoader.loadMany(partnerIds)
+
     const items: CampaignInput[] = campaigns.map((campaign, index) => {
-      const ad = ads[index]
-      if (!ad) throw new NotFoundException(AdNotFound)
-
       return {
-        id: campaign.id,
-        name: campaign.name,
-        description: campaign.description,
-        status: campaign.status,
-        startDate: campaign.startDate,
-        endDate: campaign.endDate,
-        createdAt: campaign.createdAt,
-        ads: [
-          {
-            id: ad.id,
-            type: ad.type,
-            status: ad.status,
-            url: ad.url,
-            content: ad.content,
-            title: ad.title,
-            createdAt: ad.createdAt,
-
-            campaign,
-          },
-        ],
+        ...campaign,
+        ads: ads.filter(ad => ad.campaignId === campaign.id),
+        partners: partners.filter(
+          partner => partner.campaignId === campaign.id,
+        ),
       }
     })
 

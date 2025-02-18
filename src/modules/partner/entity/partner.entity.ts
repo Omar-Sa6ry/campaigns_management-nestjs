@@ -1,6 +1,15 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm'
 import { Campaign } from '../../campaign/entity/campaign.entity'
+import { Transform } from 'class-transformer'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  UpdateDateColumn,
+  CreateDateColumn,
+} from 'typeorm'
 
 @ObjectType()
 @Entity()
@@ -13,11 +22,30 @@ export class Partner {
   @Field(() => String)
   name: string
 
-  @Column()
+  @Column({ unique: true })
   @Field(() => Int)
   phone: number
 
-  @ManyToMany(() => Campaign, campaign => campaign.partners, { nullable: true })
+  @Column()
+  @Field(() => Int)
+  campaignId: number
+
+  @CreateDateColumn({ type: 'timestamp' })
+  @Transform(({ value }) => (value ? new Date(value).toLocaleString() : null), {
+    toClassOnly: true,
+  })
+  @Field()
+  createdAt: Date
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  @Transform(({ value }) => (value ? new Date(value).toLocaleString() : null), {
+    toClassOnly: true,
+  })
+  @Field()
+  updateAt: Date
+
+  @ManyToOne(() => Campaign, campaign => campaign.partners, { nullable: true })
   @Field(() => [Campaign], { nullable: true })
+  @JoinColumn({ name: 'campaignId' })
   campaigns: Campaign[]
 }

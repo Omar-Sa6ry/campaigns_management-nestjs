@@ -35,7 +35,7 @@ export class UserCampaignResolver {
 
   @Query(() => UserCampaignResponse)
   @Auth(Role.ADMIN, Role.MANAGER)
-  async getCampaignById (
+  async getUserCampaignById (
     @Args('id', { type: () => Int }) id: number,
   ): Promise<UserCampaignResponse> {
     const campaignCacheKey = `user-campaign:${id}`
@@ -86,7 +86,7 @@ export class UserCampaignResolver {
   }
 
   @Mutation(() => String)
-  @Auth(Role.USER)
+  @Auth(Role.USER, Role.ADMIN, Role.MANAGER)
   async deleteUserFromCampaign (
     @CurrentUser() user: CurrentUserDto,
   ): Promise<string> {

@@ -35,6 +35,13 @@ export const AdsNotFound = 'Ads not found'
 export const CreateAd = 'Ad is created sucessfully'
 export const DeleteAd = 'Ad is deleted sucessfully'
 
+// Partner
+export const PhoneIsExisted = 'Phone is existed ,Please change'
+export const PartnerNotFound = 'Partner Not Found'
+export const PartnersNotFound = 'Partners Not Found'
+export const DeletePartner = 'Partner deleted successfully'
+export const CreatePartner ='Create Partner is sucessfully'
+
 // Image
 export const ImageError = 'Image upload failed:'
 

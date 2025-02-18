@@ -9,15 +9,19 @@ import { UserModule } from '../users/users.module'
 import { CampaignModule } from '../campaign/campaign.module'
 import { User } from '../users/entity/user.entity'
 import { Campaign } from '../campaign/entity/campaign.entity'
-import { UserLoader } from 'src/common/loaders/user.loader'
-import { CampaignLoader } from 'src/common/loaders/campaign.loader'
-import { AdLoader } from 'src/common/loaders/ad.loader'
+import { UserLoader } from 'src/modules/users/loader/user.loader'
+import { CampaignLoader } from 'src/modules/campaign/loader/campaign.loader'
+import { AdLoader } from 'src/modules/ad/loader/ad.loader'
 import { Ad } from '../ad/entity/ad.entity'
+import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
+import { Partner } from '../partner/entity/partner.entity'
+import { PartnerModule } from '../partner/partner.module'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserCampaign, Ad, Campaign, User]),
+    TypeOrmModule.forFeature([UserCampaign, Ad, Partner, Campaign, User]),
     RedisModule,
+    PartnerModule,
     CampaignModule,
     UserModule,
     WebSocketModule,
@@ -26,6 +30,7 @@ import { Ad } from '../ad/entity/ad.entity'
     UserCampaignResolver,
     UserCampaignService,
     UserLoader,
+    PartnerLoader,
     CampaignLoader,
     AdLoader,
   ],

@@ -9,19 +9,21 @@ import { WebSocketModule } from 'src/common/websocket/websocket.module'
 import { UploadModule } from 'src/common/upload/upload.module'
 import { CampaignModule } from '../campaign/campaign.module'
 import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
-import { AdLoader } from 'src/common/loaders/ad.loader'
-import { CampaignLoader } from 'src/common/loaders/campaign.loader'
+import { AdLoader } from 'src/modules/ad/loader/ad.loader'
+import { CampaignLoader } from 'src/modules/campaign/loader/campaign.loader'
 import { Campaign } from '../campaign/entity/campaign.entity'
+import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
+import { Partner } from '../partner/entity/partner.entity'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Ad, Campaign, UserCampaign]),
+    TypeOrmModule.forFeature([Ad, Campaign, Partner, UserCampaign]),
     UserModule,
     UploadModule,
     CampaignModule,
     RedisModule,
     WebSocketModule,
   ],
-  providers: [AdService, AdResolver, CampaignLoader, AdLoader],
+  providers: [AdService, AdResolver, PartnerLoader, CampaignLoader, AdLoader],
 })
 export class AdModule {}

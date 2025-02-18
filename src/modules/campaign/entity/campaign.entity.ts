@@ -9,8 +9,6 @@ import {
   PrimaryGeneratedColumn,
   Column,
   OneToMany,
-  ManyToMany,
-  JoinTable,
   CreateDateColumn,
   Index,
   UpdateDateColumn,
@@ -77,8 +75,7 @@ export class Campaign {
   @Field(() => [UserCampaign], { nullable: true })
   joinedCampaigns: UserCampaign[]
 
-  @ManyToMany(() => Partner, partner => partner.campaigns, { nullable: true })
-  @JoinTable()
+  @OneToMany(() => Partner, partner => partner.campaigns, { nullable: true })
   @Field(() => [Partner], { nullable: true })
   partners: Partner[]
 }

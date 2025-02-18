@@ -1,5 +1,6 @@
 import { Field, InputType, Int } from '@nestjs/graphql'
 import { AdInput } from 'src/modules/ad/dtos/adInput.dto'
+import { Partner } from 'src/modules/partner/entity/partner.entity'
 
 @InputType()
 export class CampaignInput {
@@ -26,4 +27,7 @@ export class CampaignInput {
 
   @Field(() => [AdInput], { nullable: true })
   ads: AdInput[]
+
+  @Field(() => [Partner], { nullable: true })
+  partners: Partner[]
 }

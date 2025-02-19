@@ -11,6 +11,7 @@ import { PartnerModule } from './modules/partner/partner.module'
 import { AdModule } from './modules/ad/ad.module'
 import { CampaignModule } from './modules/campaign/campaign.module'
 import { UserCampaignModule } from './modules/userCampaign/userCampaign.module'
+import { InteractionModule } from './modules/interaction/interaction.module'
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UserCampaignModule } from './modules/userCampaign/userCampaign.module'
     PartnerModule,
     CampaignModule,
     UserCampaignModule,
+    InteractionModule,
     AdModule,
   ],
 

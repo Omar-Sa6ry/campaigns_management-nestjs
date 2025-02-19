@@ -42,6 +42,12 @@ export const PartnersNotFound = 'Partners Not Found'
 export const DeletePartner = 'Partner deleted successfully'
 export const CreatePartner ='Create Partner is sucessfully'
 
+// Interaction
+export const CreateInteraction = 'Interaction is created sucessfully'
+export const CheckType = 'Enter a suitabe Type of Interaction'
+export const InteractionNotFound = 'Interaction Not Found'
+export const InteractionsNotFound = 'Interactions Not Found'
+
 // Image
 export const ImageError = 'Image upload failed:'
 

@@ -22,6 +22,11 @@ export enum AdType {
   BANNER = 'BANNER',
 }
 
+export enum InterActionType {
+  VIEW = 'view',
+  CLICK = 'click',
+}
+
 export enum AdStatus {
   DRAFT = 'DRAFT',
   PENDING = 'PENDING',

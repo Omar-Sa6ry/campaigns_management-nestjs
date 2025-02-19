@@ -25,5 +25,6 @@ import { Partner } from '../partner/entity/partner.entity'
     WebSocketModule,
   ],
   providers: [AdService, AdResolver, PartnerLoader, CampaignLoader, AdLoader],
+  exports: [AdService],
 })
 export class AdModule {}

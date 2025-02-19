@@ -1,6 +1,8 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { Campaign } from '../../campaign/entity/campaign.entity'
 import { Transform } from 'class-transformer'
+import { AdStatus, AdType } from 'src/common/constant/enum.constant'
+import { Interaction } from 'src/modules/interaction/entity/interaction.entity'
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -9,8 +11,8 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   JoinColumn,
+  OneToMany,
 } from 'typeorm'
-import { AdStatus, AdType } from 'src/common/constant/enum.constant'
 
 @ObjectType()
 @Entity()
@@ -68,4 +70,11 @@ export class Ad {
   @JoinColumn({ name: 'campaignId' })
   @Field(() => Campaign)
   campaign: Campaign
+
+  @OneToMany(() => Interaction, interaction => interaction.ad, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @Field(() => [Interaction], { nullable: true })
+  interactions: Interaction[]
 }

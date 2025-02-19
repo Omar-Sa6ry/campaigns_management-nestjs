@@ -197,6 +197,53 @@ export class AdService {
     }
   }
 
+  async getAdsFromCampaign (
+    campaignId: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<AdsInput> {
+    const [data, total] = await this.adRepo.findAndCount({
+      where: { campaignId },
+      take: limit,
+      skip: (page - 1) * limit,
+      relations: ['campaign'],
+      order: { createdAt: 'DESC' },
+    })
+    if (data.length == 0) throw new NotFoundException(AdsNotFound)
+
+    const campaignIds = data.map(ad => ad.campaignId)
+    const campaigns = await this.campaignLoader.loadMany(campaignIds)
+
+    const adIds = campaigns.map(campaign => campaign.id)
+    const ads = await this.adLoader.loadMany(adIds)
+
+    const partnerIds = campaigns.map(campaign => campaign.id)
+    const partners = await this.partnerLoader.loadMany(partnerIds)
+
+    const items = ads.map((ad, index) => {
+      const campaign = campaigns[index]
+      if (!campaign) throw new NotFoundException(CampaignNotFound)
+
+      return {
+        ...ad,
+        campaign: {
+          ...campaign,
+          ads: ads.filter(ad => ad.campaignId === campaign.id),
+          partners: partners.filter(
+            partner => partner.campaignId === campaign.id,
+          ),
+        },
+      }
+    })
+
+    return {
+      items,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    }
+  }
+
   async listAds (page: number = 1, limit: number = 10): Promise<AdsInput> {
     const [data, total] = await this.adRepo.findAndCount({
       take: limit,

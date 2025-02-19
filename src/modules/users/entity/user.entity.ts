@@ -11,6 +11,8 @@ import { Role } from 'src/common/constant/enum.constant'
 import { Campaign } from 'src/modules/campaign/entity/campaign.entity'
 import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
 import { Interaction } from 'src/modules/interaction/entity/interaction.entity'
+import { Ticket } from 'src/modules/ticket/entity/ticket.entity'
+import { PartnerRequest } from 'src/modules/request/entity/partnerRequest.entity'
 
 @ObjectType()
 @Entity()
@@ -57,6 +59,19 @@ export class User {
   })
   @Field(() => [Interaction], { nullable: true })
   interactions: Interaction[]
+
+  @OneToMany(() => Ticket, ticket => ticket.user, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @Field(() => [Ticket], { nullable: true })
+  tickets: Ticket[]
+
+  @OneToMany(() => PartnerRequest, PartnerRequest => PartnerRequest.user, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  requests: PartnerRequest[]
 
   @OneToMany(() => UserCampaign, userCampaign => userCampaign.user, {
     nullable: true,

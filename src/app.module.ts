@@ -12,6 +12,7 @@ import { AdModule } from './modules/ad/ad.module'
 import { CampaignModule } from './modules/campaign/campaign.module'
 import { UserCampaignModule } from './modules/userCampaign/userCampaign.module'
 import { InteractionModule } from './modules/interaction/interaction.module'
+import { TicketModule } from './modules/ticket/ticket.module'
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { InteractionModule } from './modules/interaction/interaction.module'
     UserCampaignModule,
     InteractionModule,
     AdModule,
+    TicketModule,
   ],
 
   providers: [AppService, AppResolver],

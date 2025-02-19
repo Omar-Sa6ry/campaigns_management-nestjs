@@ -82,6 +82,16 @@ export class AdResolver {
   }
 
   @Query(() => AdsResponse)
+  @Auth(Role.ADMIN, Role.MANAGER)
+  async getAdsFromCampaign (
+    @Args('campaignId') campaignId: number,
+    @Args('page', { type: () => Number, defaultValue: 1 }) page: number,
+    @Args('limit', { type: () => Number, defaultValue: 10 }) limit: number,
+  ): Promise<AdsResponse> {
+    return await this.adService.getAdsFromCampaign(campaignId, page, limit)
+  }
+
+  @Query(() => AdsResponse)
   @Auth(Role.USER, Role.ADMIN, Role.MANAGER)
   async getAdsFromUser (
     @CurrentUser() user: CurrentUserDto,

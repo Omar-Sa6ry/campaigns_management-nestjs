@@ -9,16 +9,19 @@ import { Campaign } from '../campaign/entity/campaign.entity'
 import { Partner } from './entity/partner.entity'
 import { Ad } from '../ad/entity/ad.entity'
 import { PartnerInput } from './input/partner.input'
-import { AdInput } from '../ad/dtos/adInput.dto'
+import { AdInput, AdsInput } from '../ad/dtos/adInput.dto'
 import { PartnerDto } from './dtos/Partner.dto'
 import { PartnersInput } from './input/partners.input'
 import { CampaignInput } from '../campaign/inputs/campain.input'
 import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
 import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
+import { CampaignService } from '../campaign/campaign.service'
 import { RedisService } from 'src/common/redis/redis.service'
 import { CampaignLoader } from 'src/modules/campaign/loader/campaign.loader'
+import { AdService } from '../ad/ad.service'
 import { CreatePartnerDto } from './dtos/createPartner.dto'
 import {
+  AdsNotFound,
   CampaignNotFound,
   DeletePartner,
   PartnerNotFound,
@@ -32,6 +35,8 @@ export class PartnerService {
   constructor (
     private partnerLoader: PartnerLoader,
     private campaignLoader: CampaignLoader,
+    private adService: AdService,
+    private campaignService: CampaignService,
     private readonly redisService: RedisService,
     @InjectRepository(Ad) private adRepo: Repository<Ad>,
     @InjectRepository(Campaign) private campaignRepo: Repository<Campaign>,
@@ -156,44 +161,16 @@ export class PartnerService {
     })
     if (data.length === 0) throw new NotFoundException(PartnersNotFound)
 
-    const campaignIds = data.map(ad => ad.campaignId)
-    const campaigns = await this.campaignLoader.loadMany(campaignIds)
+    const partnerIds = data.map(ad => ad.campaignId)
+    const partners = await this.partnerLoader.loadMany(partnerIds)
 
-    const items: PartnerInput[] = await Promise.all(
-      data.map(async (partner, index) => {
-        const campaign = campaigns[index]
-        if (!campaign) throw new NotFoundException(CampaignNotFound)
+    const items: PartnerInput[] = data.map((p, index) => {
+      const partner = partners[index]
+      if (!partner) throw new NotFoundException(PartnerNotFound)
 
-        const ads = await this.adRepo.find({
-          where: { campaignId: campaign.id },
-          relations: ['campaign'],
-        })
+      return partner
+    })
 
-        const partners = await this.partnerRepo.find({
-          where: { campaignId: campaign.id },
-        })
-
-        const adsInput: AdInput[] = await ads.map(ad => {
-          return {
-            ...ad,
-            campaign,
-            partners,
-          }
-        })
-
-        return {
-          ...partner,
-          campaign: {
-            ...campaign,
-            ads: adsInput,
-            partners: partners.map(p => ({
-              ...p,
-              campaign: { ...campaign },
-            })),
-          },
-        }
-      }),
-    )
     return { items, total, page, totalPages: Math.ceil(total / limit) }
   }
 
@@ -208,42 +185,15 @@ export class PartnerService {
     })
     if (data.length === 0) throw new NotFoundException(PartnersNotFound)
 
-    const campaignIds = data.map(ad => ad.campaignId)
-    const campaigns = await this.campaignLoader.loadMany(campaignIds)
+    const partnerIds = data.map(ad => ad.campaignId)
+    const partners = await this.partnerLoader.loadMany(partnerIds)
 
     const items: PartnerInput[] = await Promise.all(
-      data.map(async (partner, index) => {
-        const campaign = campaigns[index]
-        if (!campaign) throw new NotFoundException(CampaignNotFound)
+      data.map(async (p, index) => {
+        const partner = partners[index]
+        if (!partner) throw new NotFoundException(PartnerNotFound)
 
-        const ads = await this.adRepo.find({
-          where: { campaignId: campaign.id },
-          relations: ['campaign'],
-        })
-
-        const partners = await this.partnerRepo.find({
-          where: { campaignId: campaign.id },
-        })
-
-        const adsInput: AdInput[] = await ads.map(ad => {
-          return {
-            ...ad,
-            campaign,
-            partners,
-          }
-        })
-
-        return {
-          ...partner,
-          campaign: {
-            ...campaign,
-            ads: adsInput,
-            partners: partners.map(p => ({
-              ...p,
-              campaign: { ...campaign },
-            })),
-          },
-        }
+        return partner
       }),
     )
     return { items, total, page, totalPages: Math.ceil(total / limit) }
@@ -265,49 +215,23 @@ export class PartnerService {
     const campaignIds = userCampaigns.map(ad => ad.campaignId)
     const campaigns = await this.campaignLoader.loadMany(campaignIds)
 
-    const partnerpIds = campaigns.map(campaign => campaign.id)
-    const partners = await this.partnerLoader.loadMany(partnerpIds)
+    const partnerIds = campaigns
+      .map(campaign => campaign.partners.map(p => p.id))
+      .flat()
+    const partners = await this.partnerLoader.loadMany(partnerIds)
 
-    const items: PartnerInput[] = await Promise.all(
-      partners.map(async (partner, index) => {
-        const campaign = campaigns[index]
-        if (!campaign) throw new NotFoundException(CampaignNotFound)
+    const items: PartnerInput[] = partners.map((p, index) => {
+      const partner = partners[index]
+      if (!partner) throw new NotFoundException(PartnerNotFound)
 
-        const ads = await this.adRepo.find({
-          where: { campaignId: campaign.id },
-          relations: ['campaign'],
-        })
+      return partner
+    })
 
-        const partners = await this.partnerRepo.find({
-          where: { campaignId: campaign.id },
-        })
+    const result = { items, total, page, totalPages: Math.ceil(total / limit) }
+    const relationCacheKey = `partner-user:${userId}`
+    await this.redisService.set(relationCacheKey, result)
 
-        const adsInput: AdInput[] = await ads.map(ad => {
-          return {
-            ...ad,
-            campaign,
-            partners,
-          }
-        })
-
-        const result = {
-          ...partner,
-          campaign: {
-            ...campaign,
-            ads: adsInput,
-            partners: partners.map(p => ({
-              ...p,
-              campaign: { ...campaign },
-            })),
-          },
-        }
-        const relationCacheKey = `partner-user:${userId}`
-        await this.redisService.set(relationCacheKey, result)
-
-        return result
-      }),
-    )
-    return { items, total, page, totalPages: Math.ceil(total / limit) }
+    return
   }
 
   async getCampaignFromPartner (campaignId: number): Promise<CampaignInput> {
@@ -338,6 +262,29 @@ export class PartnerService {
     await this.redisService.set(relationCacheKey, result)
 
     return result
+  }
+
+  async getAdsFromPartner (
+    partnerId: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<AdsInput> {
+    const partner = await this.partnerRepo.findOne({ where: { id: partnerId } })
+    if (!partner) throw new BadRequestException(PartnerNotFound)
+
+    const campaign = await this.campaignService.getCampainById(
+      partner.campaignId,
+    )
+    if (!campaign) throw new BadRequestException(CampaignNotFound)
+
+    const ads = await this.adService.getAdsFromCampaign(
+      campaign.id,
+      page,
+      limit,
+    )
+    if (!(ads instanceof AdsInput)) throw new BadRequestException(AdsNotFound)
+
+    return ads
   }
 
   async updatePartner (
@@ -420,4 +367,7 @@ export class PartnerService {
       await query.release()
     }
   }
+
+
+  
 }

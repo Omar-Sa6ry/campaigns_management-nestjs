@@ -9,6 +9,7 @@ import { Interaction } from './entity/interaction.entity'
 import { Role } from 'src/common/constant/enum.constant'
 import { Auth } from 'src/common/decerator/auth.decerator'
 import { CurrentUserDto } from 'src/common/dtos/currentUser.dto'
+import { CreateInteraction } from 'src/common/constant/messages.constant'
 import { CurrentUser } from 'src/common/decerator/currentUser.decerator'
 import {
   InteractionResponse,
@@ -28,7 +29,11 @@ export class InteractionResolver {
     @CurrentUser() user: CurrentUserDto,
     @Args('data') data: CreateInteractionDto,
   ): Promise<InteractionResponse> {
-    return { data: await this.interactionService.create(user.id, data) }
+    return {
+      statusCode: 201,
+      message: CreateInteraction,
+      data: await this.interactionService.create(user.id, data),
+    }
   }
 
   @Query(() => InteractionResponse)

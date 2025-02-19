@@ -1,39 +1,43 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql'
+import { User } from '../../users/entity/user.entity'
 import { Campaign } from '../../campaign/entity/campaign.entity'
+import { Field, Int, ObjectType } from '@nestjs/graphql'
+import { TicketType } from 'src/common/constant/enum.constant'
 import { Transform } from 'class-transformer'
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  JoinColumn,
-  UpdateDateColumn,
   CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm'
-import { PartnerStatus } from 'src/common/constant/enum.constant'
 
-@ObjectType()
 @Entity()
-export class Partner {
+@ObjectType()
+export class Ticket {
   @PrimaryGeneratedColumn()
   @Field(() => Int)
   id: number
 
   @Column()
-  @Field(() => String)
-  name: string
-
-  @Column({ type: 'enum', enum: PartnerStatus, default: PartnerStatus.PENDING })
-  @Field()
-  status: PartnerStatus
-
-  @Column({ unique: true })
   @Field(() => Int)
-  phone: number
+  userId: number
 
   @Column()
   @Field(() => Int)
   campaignId: number
+
+  @Column({ type: 'timestamp' })
+  @Field(() => Date)
+  expireAt: Date
+
+  @Column({
+    type: 'enum',
+    enum: TicketType,
+    default: TicketType.VAILD,
+  })
+  status: TicketType
 
   @CreateDateColumn({ type: 'timestamp' })
   @Transform(({ value }) => (value ? new Date(value).toLocaleString() : null), {
@@ -49,8 +53,13 @@ export class Partner {
   @Field()
   updateAt: Date
 
-  @ManyToOne(() => Campaign, campaign => campaign.partners, { nullable: true })
-  @Field(() => [Campaign], { nullable: true })
+  @ManyToOne(() => User, user => user.tickets, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user: User
+
+  @ManyToOne(() => Campaign, campaign => campaign.tickets, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'campaignId' })
-  campaigns: Campaign[]
+  campaign: Campaign
 }

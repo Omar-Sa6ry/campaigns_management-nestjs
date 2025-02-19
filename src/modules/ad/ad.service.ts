@@ -36,7 +36,6 @@ import {
 export class AdService {
   constructor (
     private adLoader: AdLoader,
-    private partnerLoader: PartnerLoader,
     private campaignLoader: CampaignLoader,
     private readonly redisService: RedisService,
     private readonly uploadService: UploadService,
@@ -164,29 +163,14 @@ export class AdService {
     })
     if (data.length == 0) throw new NotFoundException(AdsNotFound)
 
-    const campaignIds = data.map(ad => ad.campaignId)
-    const campaigns = await this.campaignLoader.loadMany(campaignIds)
-
-    const adIds = campaigns.map(campaign => campaign.id)
+    const adIds = data.map(ad => ad.id)
     const ads = await this.adLoader.loadMany(adIds)
 
-    const partnerIds = campaigns.map(campaign => campaign.id)
-    const partners = await this.partnerLoader.loadMany(partnerIds)
+    const items = ads.map((a, index) => {
+      const ad = ads[index]
+      if (!ad) throw new NotFoundException(AdNotFound)
 
-    const items = ads.map((ad, index) => {
-      const campaign = campaigns[index]
-      if (!campaign) throw new NotFoundException(CampaignNotFound)
-
-      return {
-        ...ad,
-        campaign: {
-          ...campaign,
-          ads: ads.filter(ad => ad.campaignId === campaign.id),
-          partners: partners.filter(
-            partner => partner.campaignId === campaign.id,
-          ),
-        },
-      }
+      return ad
     })
 
     return {
@@ -211,29 +195,14 @@ export class AdService {
     })
     if (data.length == 0) throw new NotFoundException(AdsNotFound)
 
-    const campaignIds = data.map(ad => ad.campaignId)
-    const campaigns = await this.campaignLoader.loadMany(campaignIds)
-
-    const adIds = campaigns.map(campaign => campaign.id)
+    const adIds = data.map(ad => ad.id)
     const ads = await this.adLoader.loadMany(adIds)
 
-    const partnerIds = campaigns.map(campaign => campaign.id)
-    const partners = await this.partnerLoader.loadMany(partnerIds)
+    const items = ads.map((a, index) => {
+      const ad = ads[index]
+      if (!ad) throw new NotFoundException(AdNotFound)
 
-    const items = ads.map((ad, index) => {
-      const campaign = campaigns[index]
-      if (!campaign) throw new NotFoundException(CampaignNotFound)
-
-      return {
-        ...ad,
-        campaign: {
-          ...campaign,
-          ads: ads.filter(ad => ad.campaignId === campaign.id),
-          partners: partners.filter(
-            partner => partner.campaignId === campaign.id,
-          ),
-        },
-      }
+      return ad
     })
 
     return {
@@ -252,30 +221,14 @@ export class AdService {
     })
     if (data.length == 0) throw new NotFoundException(AdsNotFound)
 
-    const campaignIds = data.map(ad => ad.campaignId)
-    const campaigns = await this.campaignLoader.loadMany(campaignIds)
-
-    // To get ads for all campaign in ad
-    const adIds = campaigns.map(ad => ad.id)
+    const adIds = data.map(ad => ad.id)
     const ads = await this.adLoader.loadMany(adIds)
 
-    const partnerIds = campaigns.map(campaign => campaign.id)
-    const partners = await this.partnerLoader.loadMany(partnerIds)
+    const items = ads.map((a, index) => {
+      const ad = ads[index]
+      if (!ad) throw new NotFoundException(AdNotFound)
 
-    const items = ads.map((ad, index) => {
-      const campaign = campaigns[index]
-      if (!campaign) throw new NotFoundException(CampaignNotFound)
-
-      return {
-        ...ad,
-        campaign: {
-          ...campaign,
-          ads: ads.filter(ad => ad.campaignId === campaign.id),
-          partners: partners.filter(
-            partner => partner.campaignId === campaign.id,
-          ),
-        },
-      }
+      return ad
     })
 
     return {
@@ -302,29 +255,17 @@ export class AdService {
     const campaignIds = userCampaigns.map(ad => ad.campaignId)
     const campaigns = await this.campaignLoader.loadMany(campaignIds)
 
-    const partnerIds = campaigns.map(campaign => campaign.id)
-    const partners = await this.partnerLoader.loadMany(partnerIds)
-
-    const adIds = campaigns.map(ad => ad.id)
+    const adIds = campaigns.map(campaign => campaign.ads.map(i => i.id)).flat()
     const ads = await this.adLoader.loadMany(adIds)
 
-    const items: AdInput[] = ads.map((ad, index) => {
-      const adCampaign = ads[index]
-      if (!adCampaign) throw new NotFoundException(AdNotFound)
+    const items: AdInput[] = ads.map((a, index) => {
+      const ad = ads[index]
+      if (!ad) throw new NotFoundException(AdNotFound)
 
       const campaign = campaigns[index]
       if (!campaign) throw new NotFoundException(CampaignNotFound)
 
-      return {
-        ...ad,
-        campaign: {
-          ...campaign,
-          ads: ads.filter(ad => ad.campaignId === campaign.id),
-          partners: partners.filter(
-            partner => partner.campaignId === campaign.id,
-          ),
-        },
-      }
+      return ad
     })
 
     const result = { items, total, page, totalPages: Math.ceil(total / limit) }

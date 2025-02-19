@@ -40,13 +40,19 @@ export const PhoneIsExisted = 'Phone is existed ,Please change'
 export const PartnerNotFound = 'Partner Not Found'
 export const PartnersNotFound = 'Partners Not Found'
 export const DeletePartner = 'Partner deleted successfully'
-export const CreatePartner ='Create Partner is sucessfully'
+export const CreatePartner = 'Create Partner is sucessfully'
 
 // Interaction
 export const CreateInteraction = 'Interaction is created sucessfully'
 export const CheckType = 'Enter a suitabe Type of Interaction'
 export const InteractionNotFound = 'Interaction Not Found'
 export const InteractionsNotFound = 'Interactions Not Found'
+
+// Ticket
+export const TicketNotFound = 'Ticket not found'
+export const TickestNotFound = 'Tickets not found'
+export const DeleteTicket = 'Ticket is deleted sucessfully'
+export const CreateTicket = 'Ticket is created sucessfully'
 
 // Image
 export const ImageError = 'Image upload failed:'

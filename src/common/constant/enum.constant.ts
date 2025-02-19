@@ -15,11 +15,22 @@ export enum CampaignStatus {
   REJECTED = 'rejected',
 }
 
+export enum PartnerStatus {
+  PENDING = 'pending',
+  APPROVES = 'approved',
+  REJECTED = 'rejected',
+}
+
 export enum AdType {
   IMAGE = 'IMAGE',
   VIDEO = 'VIDEO',
   TEXT = 'TEXT',
   BANNER = 'BANNER',
+}
+
+export enum TicketType {
+  EXPIRED = 'expired',
+  VAILD = 'valid',
 }
 
 export enum InterActionType {

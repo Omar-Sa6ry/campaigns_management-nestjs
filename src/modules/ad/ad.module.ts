@@ -12,7 +12,6 @@ import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
 import { AdLoader } from 'src/modules/ad/loader/ad.loader'
 import { CampaignLoader } from 'src/modules/campaign/loader/campaign.loader'
 import { Campaign } from '../campaign/entity/campaign.entity'
-import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
 import { Partner } from '../partner/entity/partner.entity'
 
 @Module({
@@ -24,7 +23,7 @@ import { Partner } from '../partner/entity/partner.entity'
     RedisModule,
     WebSocketModule,
   ],
-  providers: [AdService, AdResolver, PartnerLoader, CampaignLoader, AdLoader],
+  providers: [AdService, AdResolver, CampaignLoader, AdLoader],
   exports: [AdService],
 })
 export class AdModule {}

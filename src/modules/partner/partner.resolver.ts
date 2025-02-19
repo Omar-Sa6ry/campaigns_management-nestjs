@@ -14,6 +14,7 @@ import { Role } from 'src/common/constant/enum.constant'
 import { RedisService } from 'src/common/redis/redis.service'
 import { CreatePartner } from 'src/common/constant/messages.constant'
 import { CampaignInput } from '../campaign/inputs/campain.input'
+import { AdsResponse } from '../ad/dtos/adResponse.dto'
 
 @Resolver(() => Partner)
 export class PartnerResolver {
@@ -65,6 +66,16 @@ export class PartnerResolver {
     @Args('page', { type: () => Int, nullable: true }) page?: number,
   ): Promise<PartnersResponse> {
     return this.partnerService.getPartnersWithData(partnerDto, limit, page)
+  }
+
+  @Query(() => AdsResponse)
+  @Auth(Role.ADMIN, Role.MANAGER)
+  async getAdsFromPartner (
+    @Args('partnerId') partnerId: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
+    @Args('page', { type: () => Int, nullable: true }) page?: number,
+  ): Promise<AdsResponse> {
+    return this.partnerService.getAdsFromPartner(partnerId, limit, page)
   }
 
   @Query(() => CampaignResponse)

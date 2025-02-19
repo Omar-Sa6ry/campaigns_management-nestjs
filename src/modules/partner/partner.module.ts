@@ -11,12 +11,15 @@ import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
 import { Ad } from '../ad/entity/ad.entity'
 import { CampaignModule } from '../campaign/campaign.module'
 import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
+import { AdModule } from '../ad/ad.module'
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Partner, Ad, UserCampaign, Campaign]),
     RedisModule,
     UserModule,
+    CampaignModule,
+    AdModule,
   ],
   providers: [PartnerResolver, PartnerService, PartnerLoader, CampaignLoader],
 })

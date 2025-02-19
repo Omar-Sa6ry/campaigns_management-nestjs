@@ -29,14 +29,12 @@ import {
   UserNotFound,
   YouRemoveCampaign,
 } from 'src/common/constant/messages.constant'
+import { UserCampaignLoader } from './loader/userCampaign.loader'
 
 @Injectable()
 export class UserCampaignService {
   constructor (
-    private adLoader: AdLoader,
-    private userLoader: UserLoader,
-    private partnerLoader: PartnerLoader,
-    private campaignLoader: CampaignLoader,
+    private userCampaignLoader: UserCampaignLoader,
     private readonly userService: UserService,
     private readonly campaignService: CampaignService,
     private readonly redisService: RedisService,
@@ -128,42 +126,24 @@ export class UserCampaignService {
     const user = await this.userService.findById(userId)
     if (!user) throw new BadRequestException(UserNotFound)
 
-    const [userCampaigns, total] = await this.userCampaignRepo.findAndCount({
+    const [data, total] = await this.userCampaignRepo.findAndCount({
       where: { userId },
       take: limit,
       skip: (page - 1) * limit,
       relations: ['ads', 'partners', 'joinedCampaigns'],
       order: { joinAt: 'DESC' },
     })
-    if (userCampaigns.length == 0)
-      throw new NotFoundException(UserCampaignsNotFound)
+    if (data.length == 0) throw new NotFoundException(UserCampaignsNotFound)
 
-    const campaignIds = userCampaigns.map(
-      userCampaign => userCampaign.campaignId,
+    const userCampaignIds = data.map(userCampaign => userCampaign.id)
+    const userCampaigns = await this.userCampaignLoader.loadMany(
+      userCampaignIds,
     )
-    const campaigns = await this.campaignLoader.loadMany(campaignIds)
 
-    // To get ads for all campaign in ad
-    const adIds = campaigns.map(ad => ad.id)
-    const ads = await this.adLoader.loadMany(adIds)
+    const items: UserCampaignInput[] = data.map((u, index) => {
+      const userCampaign = userCampaigns[index]
 
-    const partnerIds = campaigns.map(campaign => campaign.id)
-    const partners = await this.partnerLoader.loadMany(partnerIds)
-
-    const items = userCampaigns.map((userCampaign, index) => {
-      const campaign = campaigns[index]
-
-      return {
-        ...userCampaign,
-        user: { ...user },
-        campaign: {
-          ...campaign,
-          ads: ads.filter(ad => ad.campaignId === campaign.id),
-          partners: partners.filter(
-            partner => partner.campaignId === campaign.id,
-          ),
-        },
-      }
+      return userCampaign
     })
 
     const result = {
@@ -187,40 +167,24 @@ export class UserCampaignService {
     const campaign = await this.campaignService.getCampainById(campaignId)
     if (!campaign) throw new BadRequestException(CampaignNotFound)
 
-    const [campaigns, total] = await this.userCampaignRepo.findAndCount({
+    const [data, total] = await this.userCampaignRepo.findAndCount({
       where: { campaignId },
       take: limit,
       skip: (page - 1) * limit,
       relations: ['ads', 'partners', 'joinedCampaigns'],
       order: { joinAt: 'DESC' },
     })
-    if (campaigns.length === 0)
-      throw new NotFoundException(UserCampaignsNotFound)
+    if (data.length === 0) throw new NotFoundException(UserCampaignsNotFound)
 
-    const userIds = campaigns.map(ad => ad.userId)
-    const users = await this.userLoader.loadMany(userIds)
+    const userCampaignIds = data.map(userCampaign => userCampaign.id)
+    const userCampaigns = await this.userCampaignLoader.loadMany(
+      userCampaignIds,
+    )
 
-    const adIds = campaigns.map(ad => ad.campaignId)
-    const ads = await this.adLoader.loadMany(adIds)
+    const items: UserCampaignInput[] = data.map((u, index) => {
+      const userCampaign = userCampaigns[index]
 
-    const partnerIds = campaigns.map(campaign => campaign.id)
-    const partners = await this.partnerLoader.loadMany(partnerIds)
-
-    const items = campaigns.map((userCampaign, index) => {
-      const user = users[index]
-      if (!user) throw new NotFoundException(UserNotFound)
-
-      return {
-        ...userCampaign,
-        user: { ...user },
-        campaign: {
-          ...campaign,
-          ads: ads.filter(ad => ad.campaignId === campaign.id),
-          partners: partners.filter(
-            partner => partner.campaignId === campaign.id,
-          ),
-        },
-      }
+      return userCampaign
     })
 
     const result = {

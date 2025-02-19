@@ -1,39 +1,35 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql'
-import { Campaign } from '../../campaign/entity/campaign.entity'
+import { User } from 'src/modules/users/entity/user.entity'
+import { Campaign } from 'src/modules/campaign/entity/campaign.entity'
+import { Field, Int } from '@nestjs/graphql'
 import { Transform } from 'class-transformer'
+import { PartnerStatus } from 'src/common/constant/enum.constant'
 import {
   Entity,
   PrimaryGeneratedColumn,
-  Column,
   ManyToOne,
-  JoinColumn,
-  UpdateDateColumn,
+  Column,
   CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm'
-import { PartnerStatus } from 'src/common/constant/enum.constant'
 
-@ObjectType()
 @Entity()
-export class Partner {
+export class PartnerRequest {
   @PrimaryGeneratedColumn()
   @Field(() => Int)
   id: number
 
   @Column()
-  @Field(() => String)
-  name: string
+  @Field(() => Int)
+  campaignId: number
+
+  @Column()
+  @Field(() => Int)
+  userId: number
 
   @Column({ type: 'enum', enum: PartnerStatus, default: PartnerStatus.PENDING })
   @Field()
   status: PartnerStatus
-
-  @Column({ unique: true })
-  @Field(() => Int)
-  phone: number
-
-  @Column()
-  @Field(() => Int)
-  campaignId: number
 
   @CreateDateColumn({ type: 'timestamp' })
   @Transform(({ value }) => (value ? new Date(value).toLocaleString() : null), {
@@ -49,8 +45,11 @@ export class Partner {
   @Field()
   updateAt: Date
 
-  @ManyToOne(() => Campaign, campaign => campaign.partners, { nullable: true })
-  @Field(() => [Campaign], { nullable: true })
+  @ManyToOne(() => User, user => user.requests)
+  @JoinColumn({ name: 'userId' })
+  user: User
+
+  @ManyToOne(() => Campaign, campaign => campaign.requests)
   @JoinColumn({ name: 'campaignId' })
-  campaigns: Campaign[]
+  campaign: Campaign
 }

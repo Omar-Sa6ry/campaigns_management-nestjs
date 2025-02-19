@@ -22,13 +22,13 @@ import {
   InteractionsNotFound,
   UserNotFound,
 } from 'src/common/constant/messages.constant'
+import { InteractionLoader } from './loader/interaction.loader'
 
 @Injectable()
 export class InteractionService {
   constructor (
-    private readonly adLoader: AdLoader,
-    private readonly userLoader: UserLoader,
     private readonly adService: AdService,
+    private readonly interactionLoader: InteractionLoader,
     private readonly redisService: RedisService,
     private readonly websocketGateway: WebSocketMessageGateway,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
@@ -90,30 +90,21 @@ export class InteractionService {
   }
 
   async get (page: number = 1, limit: number = 10): Promise<InteractionsInput> {
-    const [interactions, total] = await this.interactionRepo.findAndCount({
+    const [data, total] = await this.interactionRepo.findAndCount({
       take: limit,
       skip: (page - 1) * limit,
       order: { createdAt: 'DESC' },
     })
 
-    if (interactions.length === 0)
-      throw new NotFoundException(InteractionsNotFound)
+    if (data.length === 0) throw new NotFoundException(InteractionsNotFound)
 
-    const adIds = interactions.map(interaction => interaction.adId)
-    const ads = await this.adLoader.loadMany(adIds)
+    const interactionIds = data.map(interaction => interaction.id)
+    const interactions = await this.interactionLoader.loadMany(interactionIds)
 
-    const userIds = interactions.map(interaction => interaction.adId)
-    const users = await this.userLoader.loadMany(userIds)
+    const items: InteractionInput[] = data.map((i, index) => {
+      const interaction = interactions[index]
 
-    const items: InteractionInput[] = interactions.map((interaction, index) => {
-      const ad = ads['index']
-      const user = users['index']
-
-      return {
-        ...interaction,
-        user,
-        ad,
-      }
+      return interaction
     })
 
     return { items, total, page, totalPages: Math.ceil(total / limit) }
@@ -124,31 +115,22 @@ export class InteractionService {
     page: number = 1,
     limit: number = 10,
   ): Promise<InteractionsInput> {
-    const [interactions, total] = await this.interactionRepo.findAndCount({
+    const [data, total] = await this.interactionRepo.findAndCount({
       where: { userId },
       take: limit,
       skip: (page - 1) * limit,
       order: { createdAt: 'DESC' },
     })
 
-    if (interactions.length === 0)
-      throw new NotFoundException(InteractionsNotFound)
+    if (data.length === 0) throw new NotFoundException(InteractionsNotFound)
 
-    const adIds = interactions.map(interaction => interaction.adId)
-    const ads = await this.adLoader.loadMany(adIds)
+    const interactionIds = data.map(interaction => interaction.id)
+    const interactions = await this.interactionLoader.loadMany(interactionIds)
 
-    const userIds = interactions.map(interaction => interaction.adId)
-    const users = await this.userLoader.loadMany(userIds)
+    const items: InteractionInput[] = data.map((i, index) => {
+      const interaction = interactions[index]
 
-    const items: InteractionInput[] = interactions.map((interaction, index) => {
-      const ad = ads['index']
-      const user = users['index']
-
-      return {
-        ...interaction,
-        user,
-        ad,
-      }
+      return interaction
     })
 
     const result = { items, total, page, totalPages: Math.ceil(total / limit) }

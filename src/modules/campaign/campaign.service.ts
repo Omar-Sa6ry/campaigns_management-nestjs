@@ -12,6 +12,7 @@ import { Partner } from '../partner/entity/partner.entity'
 import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
 import { CampaignDto } from './dtos/Campaign.dto'
 import { CampaignsInput } from './inputs/Campaigns.input'
+import { CampaignLoader } from './loader/campaign.loader'
 import {
   CampaignNotFound,
   CampaignsNotFound,
@@ -21,8 +22,7 @@ import {
 @Injectable()
 export class CampaignService {
   constructor (
-    private adLoader: AdLoader,
-    private partnerLoader: PartnerLoader,
+    private campaignLoader: CampaignLoader,
     private readonly redisService: RedisService,
     private readonly websocketGateway: WebSocketMessageGateway,
     @InjectRepository(Ad)
@@ -90,29 +90,21 @@ export class CampaignService {
     page: number = 1,
     limit: number = 10,
   ): Promise<CampaignsInput> {
-    const [campaigns, total] = await this.campaignRepo.findAndCount({
+    const [data, total] = await this.campaignRepo.findAndCount({
       where: { ...CampaignDto },
       take: limit,
       skip: (page - 1) * limit,
       relations: ['ads', 'partners', 'joinedCampaigns'],
       order: { createdAt: 'DESC' },
     })
-    if (campaigns.length == 0) throw new NotFoundException(CampaignsNotFound)
+    if (data.length == 0) throw new NotFoundException(CampaignsNotFound)
 
-    const adIds = campaigns.map(campaign => campaign.id)
-    const ads = await this.adLoader.loadMany(adIds)
+    const campaignIds = data.map(campaign => campaign.id)
+    const campaigns = await this.campaignLoader.loadMany(campaignIds)
 
-    const partnerIds = campaigns.map(campaign => campaign.id)
-    const partners = await this.partnerLoader.loadMany(partnerIds)
-
-    const items: CampaignInput[] = campaigns.map((campaign, index) => {
-      return {
-        ...campaign,
-        ads: ads.filter(ad => ad.campaignId === campaign.id),
-        partners: partners.filter(
-          partner => partner.campaignId === campaign.id,
-        ),
-      }
+    const items: CampaignInput[] = data.map((c, index) => {
+      const campaign = campaigns[index]
+      return campaign
     })
 
     return {
@@ -127,27 +119,19 @@ export class CampaignService {
     page: number = 1,
     limit: number = 10,
   ): Promise<CampaignsInput> {
-    const [campaigns, total] = await this.campaignRepo.findAndCount({
+    const [data, total] = await this.campaignRepo.findAndCount({
       take: limit,
       skip: (page - 1) * limit,
       order: { createdAt: 'DESC' },
     })
-    if (campaigns.length == 0) throw new NotFoundException(CampaignsNotFound)
+    if (data.length == 0) throw new NotFoundException(CampaignsNotFound)
 
-    const adIds = campaigns.map(campaign => campaign.id)
-    const ads = await this.adLoader.loadMany(adIds)
+    const campaignIds = data.map(campaign => campaign.id)
+    const campaigns = await this.campaignLoader.loadMany(campaignIds)
 
-    const partnerIds = campaigns.map(campaign => campaign.id)
-    const partners = await this.partnerLoader.loadMany(partnerIds)
-
-    const items: CampaignInput[] = campaigns.map((campaign, index) => {
-      return {
-        ...campaign,
-        ads: ads.filter(ad => ad.campaignId === campaign.id),
-        partners: partners.filter(
-          partner => partner.campaignId === campaign.id,
-        ),
-      }
+    const items: CampaignInput[] = data.map((c, index) => {
+      const campaign = campaigns[index]
+      return campaign
     })
 
     return {

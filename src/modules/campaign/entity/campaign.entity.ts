@@ -3,6 +3,7 @@ import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { Partner } from '../../partner/entity/partner.entity'
 import { CampaignStatus } from 'src/common/constant/enum.constant'
 import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
+import { Ticket } from 'src/modules/ticket/entity/ticket.entity'
 import { Ad } from '../../ad/entity/ad.entity'
 import {
   Entity,
@@ -13,6 +14,7 @@ import {
   Index,
   UpdateDateColumn,
 } from 'typeorm'
+import { PartnerRequest } from 'src/modules/request/entity/partnerRequest.entity'
 
 @ObjectType()
 @Entity()
@@ -74,6 +76,18 @@ export class Campaign {
   })
   @Field(() => [UserCampaign], { nullable: true })
   joinedCampaigns: UserCampaign[]
+
+  @OneToMany(() => Ticket, ticket => ticket.campaign, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @Field(() => [Ticket], { nullable: true })
+  tickets: Ticket[]
+
+  @OneToMany(() => PartnerRequest, PartnerRequest => PartnerRequest.campaign, {
+    nullable: true,
+  })
+  requests: PartnerRequest[]
 
   @OneToMany(() => Partner, partner => partner.campaigns, { nullable: true })
   @Field(() => [Partner], { nullable: true })

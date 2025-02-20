@@ -14,6 +14,10 @@ export class CreateUserDto {
   email: string
 
   @Field()
+  @IsInt()
+  phone: number
+
+  @Field()
   @IsString()
   @Length(8, 16, { message: PasswordValidator })
   password: string

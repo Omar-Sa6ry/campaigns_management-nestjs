@@ -6,6 +6,7 @@ import {
 import { Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { UpdateUserDto } from './dtos/UpdateUser.dto'
+import { User } from './entity/user.entity'
 import { Role } from 'src/common/constant/enum.constant'
 import { RedisService } from 'src/common/redis/redis.service'
 import {
@@ -13,7 +14,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { User } from './entity/user.entity'
 
 @Injectable()
 export class UserService {

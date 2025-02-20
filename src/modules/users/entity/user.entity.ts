@@ -29,6 +29,10 @@ export class User {
   @Field()
   email: string
 
+  @Column({ unique: true })
+  @Field()
+  phone: number
+
   @Column()
   @Exclude()
   password: string

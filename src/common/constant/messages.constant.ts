@@ -54,6 +54,14 @@ export const TickestNotFound = 'Tickets not found'
 export const DeleteTicket = 'Ticket is deleted sucessfully'
 export const CreateTicket = 'Ticket is created sucessfully'
 
+// Request
+export const ExistedRequest = 'You have already requested to join this campaign'
+export const RequestNotFound = 'Request not found'
+export const RequestsNotFound = 'Requests not found'
+export const CreateRequest = 'Request is created'
+export const RequestApprove = 'request is approved'
+export const RequestRejected = 'request is rejected'
+
 // Image
 export const ImageError = 'Image upload failed:'
 

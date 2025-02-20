@@ -5,6 +5,7 @@ import { Ad } from 'src/modules/ad/entity/ad.entity'
 import { Campaign } from 'src/modules/campaign/entity/campaign.entity'
 import { Interaction } from 'src/modules/interaction/entity/interaction.entity'
 import { Partner } from 'src/modules/partner/entity/partner.entity'
+import { PartnerRequest } from 'src/modules/request/entity/partnerRequest.entity'
 import { Ticket } from 'src/modules/ticket/entity/ticket.entity'
 import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
 import { User } from 'src/modules/users/entity/user.entity'
@@ -28,6 +29,7 @@ import { User } from 'src/modules/users/entity/user.entity'
           Partner,
           Ad,
           Ticket,
+          PartnerRequest,
         ],
         synchronize: true,
         logging: true,

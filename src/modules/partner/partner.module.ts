@@ -22,5 +22,6 @@ import { AdModule } from '../ad/ad.module'
     AdModule,
   ],
   providers: [PartnerResolver, PartnerService, PartnerLoader, CampaignLoader],
+  exports: [PartnerService],
 })
 export class PartnerModule {}

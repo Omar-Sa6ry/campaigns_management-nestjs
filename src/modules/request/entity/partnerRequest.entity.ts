@@ -12,6 +12,7 @@ import {
   UpdateDateColumn,
   JoinColumn,
 } from 'typeorm'
+import { Partner } from 'src/modules/partner/entity/partner.entity'
 
 @Entity()
 export class PartnerRequest {
@@ -26,6 +27,10 @@ export class PartnerRequest {
   @Column()
   @Field(() => Int)
   userId: number
+
+  @Column()
+  @Field(() => Int)
+  partnerId: number
 
   @Column({ type: 'enum', enum: PartnerStatus, default: PartnerStatus.PENDING })
   @Field()
@@ -48,6 +53,10 @@ export class PartnerRequest {
   @ManyToOne(() => User, user => user.requests)
   @JoinColumn({ name: 'userId' })
   user: User
+
+  @ManyToOne(() => User, user => user.requests)
+  @JoinColumn({ name: 'partnerId' })
+  partner: Partner
 
   @ManyToOne(() => Campaign, campaign => campaign.requests)
   @JoinColumn({ name: 'campaignId' })

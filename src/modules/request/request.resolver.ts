@@ -51,10 +51,14 @@ export class PartnerRequestResolver {
   @Auth(Role.ADMIN, Role.MANAGER)
   async approvePartnership (
     @Args('requestId') requestId: number,
+    @Args('expireAt') expireAt: Date,
   ): Promise<RequestResponse> {
     return {
       message: RequestApprove,
-      data: await this.partnerRequestService.approvePartnership(requestId),
+      data: await this.partnerRequestService.approvePartnership(
+        requestId,
+        expireAt,
+      ),
     }
   }
 

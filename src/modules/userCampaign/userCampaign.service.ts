@@ -5,23 +5,22 @@ import {
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { WebSocketMessageGateway } from 'src/common/websocket/websocket.gateway'
+import { UserCampaignLoader } from './loader/userCampaign.loader'
 import { UserService } from '../users/users.service'
 import { Repository } from 'typeorm'
 import { RedisService } from 'src/common/redis/redis.service'
 import { UserCampaignInput } from '../campaign/inputs/userCampainInput'
 import { Ad } from '../ad/entity/ad.entity'
 import { Partner } from '../partner/entity/partner.entity'
-import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
 import { CampaignService } from '../campaign/campaign.service'
 import { User } from '../users/entity/user.entity'
 import { Campaign } from '../campaign/entity/campaign.entity'
-import { AdLoader } from 'src/modules/ad/loader/ad.loader'
-import { CampaignLoader } from 'src/modules/campaign/loader/campaign.loader'
-import { UserLoader } from 'src/modules/users/loader/user.loader'
 import { UserCampaignsInput } from './inputs/UserCampaign.input'
 import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
 import {
   CampaignNotFound,
+  Limit,
+  Page,
   RemoveUserFromCampaign,
   UserCampaignIsExisted,
   UserCampaignNotFound,
@@ -29,7 +28,6 @@ import {
   UserNotFound,
   YouRemoveCampaign,
 } from 'src/common/constant/messages.constant'
-import { UserCampaignLoader } from './loader/userCampaign.loader'
 
 @Injectable()
 export class UserCampaignService {
@@ -120,8 +118,8 @@ export class UserCampaignService {
 
   async getUserCampaign (
     userId: number,
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<UserCampaignsInput> {
     const user = await this.userService.findById(userId)
     if (!user) throw new BadRequestException(UserNotFound)
@@ -161,8 +159,8 @@ export class UserCampaignService {
 
   async getCampaignFromUser (
     campaignId: number,
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<UserCampaignsInput> {
     const campaign = await this.campaignService.getCampainById(campaignId)
     if (!campaign) throw new BadRequestException(CampaignNotFound)

@@ -12,6 +12,7 @@ import { PartnerService } from '../partner/partner.service'
 import { PartnerStatus } from 'src/common/constant/enum.constant'
 import { Ad } from '../ad/entity/ad.entity'
 import { Partner } from '../partner/entity/partner.entity'
+import { TicketService } from '../ticket/ticket.service'
 import { RequestInput } from './input/request.input'
 import { RequestLoader } from './loader/request.loader'
 import { RequestsInput } from './input/requests.input'
@@ -19,8 +20,9 @@ import { Campaign } from 'src/modules/campaign/entity/campaign.entity'
 import { PartnerRequest } from './entity/partnerRequest.entity'
 import {
   CampaignNotFound,
-  CreateRequest,
   ExistedRequest,
+  Limit,
+  Page,
   RequestNotFound,
   RequestsNotFound,
   UserNotFound,
@@ -30,6 +32,7 @@ import {
 export class PartnerRequestService {
   constructor (
     private partnerService: PartnerService,
+    private readonly ticketService: TicketService,
     private readonly requestLoader: RequestLoader,
     private readonly redisService: RedisService,
     private readonly websocketGateway: WebSocketMessageGateway,
@@ -154,7 +157,10 @@ export class PartnerRequestService {
     return result
   }
 
-  async approvePartnership (requestId: number): Promise<RequestInput> {
+  async approvePartnership (
+    requestId: number,
+    expireAt: Date,
+  ): Promise<RequestInput> {
     const query = this.partnerRequestRepo.manager.connection.createQueryRunner()
     await query.startTransaction()
 
@@ -202,6 +208,11 @@ export class PartnerRequestService {
       await this.websocketGateway.broadcast('requestApprove', {
         requestId: request.id,
         request,
+      })
+
+      await this.ticketService.createTicket(user.id, {
+        campaignId: campaign.id,
+        expireAt,
       })
 
       await query.commitTransaction()
@@ -278,8 +289,8 @@ export class PartnerRequestService {
 
   async getrequests (
     status: PartnerStatus,
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<RequestsInput> {
     const [data, total] = await this.partnerRequestRepo.findAndCount({
       where: { status },

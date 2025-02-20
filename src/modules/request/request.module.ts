@@ -12,12 +12,14 @@ import { PartnerModule } from '../partner/partner.module'
 import { UserModule } from '../users/users.module'
 import { RedisModule } from 'src/common/redis/redis.module'
 import { WebSocketModule } from 'src/common/websocket/websocket.module'
+import { TicketModule } from '../ticket/ticket.module'
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PartnerRequest, Partner, Campaign, Ad, User]),
     PartnerModule,
     UserModule,
+    TicketModule,
     RedisModule,
     WebSocketModule,
   ],

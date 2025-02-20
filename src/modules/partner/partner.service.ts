@@ -24,6 +24,8 @@ import {
   AdsNotFound,
   CampaignNotFound,
   DeletePartner,
+  Limit,
+  Page,
   PartnerNotFound,
   PartnersNotFound,
   PhoneIsExisted,
@@ -150,8 +152,8 @@ export class PartnerService {
 
   async getPartnersWithData (
     partnerDto: PartnerDto,
-    limit: number = 10,
-    page: number = 1,
+    limit: number = Limit,
+    page: number = Page,
   ): Promise<PartnersInput> {
     const [data, total] = await this.partnerRepo.findAndCount({
       where: partnerDto,
@@ -175,8 +177,8 @@ export class PartnerService {
   }
 
   async getPartners (
-    limit: number = 10,
-    page: number = 1,
+    limit: number = Limit,
+    page: number = Page,
   ): Promise<PartnersInput> {
     const [data, total] = await this.partnerRepo.findAndCount({
       take: limit,
@@ -201,8 +203,8 @@ export class PartnerService {
 
   async getPartnersFromUser (
     userId: number,
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<PartnersInput> {
     const [userCampaigns, total] = await this.userCampaignRepo.findAndCount({
       where: { userId },
@@ -266,8 +268,8 @@ export class PartnerService {
 
   async getAdsFromPartner (
     partnerId: number,
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<AdsInput> {
     const partner = await this.partnerRepo.findOne({ where: { id: partnerId } })
     if (!partner) throw new BadRequestException(PartnerNotFound)
@@ -367,7 +369,4 @@ export class PartnerService {
       await query.release()
     }
   }
-
-
-  
 }

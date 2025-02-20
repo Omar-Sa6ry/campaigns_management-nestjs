@@ -62,6 +62,9 @@ export const CreateRequest = 'Request is created'
 export const RequestApprove = 'request is approved'
 export const RequestRejected = 'request is rejected'
 
+// Paganition
+export const Page = 1
+export const Limit = 10
 // Image
 export const ImageError = 'Image upload failed:'
 

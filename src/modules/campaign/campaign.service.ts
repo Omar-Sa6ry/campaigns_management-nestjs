@@ -17,6 +17,8 @@ import {
   CampaignNotFound,
   CampaignsNotFound,
   DeleteCamapaign,
+  Limit,
+  Page,
 } from 'src/common/constant/messages.constant'
 
 @Injectable()
@@ -87,8 +89,8 @@ export class CampaignService {
 
   async getCampaign (
     CampaignDto: CampaignDto,
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<CampaignsInput> {
     const [data, total] = await this.campaignRepo.findAndCount({
       where: { ...CampaignDto },
@@ -116,8 +118,8 @@ export class CampaignService {
   }
 
   async listCampaign (
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<CampaignsInput> {
     const [data, total] = await this.campaignRepo.findAndCount({
       take: limit,

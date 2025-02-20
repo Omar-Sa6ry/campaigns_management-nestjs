@@ -9,10 +9,9 @@ import { Interaction } from './entity/interaction.entity'
 import { InteractionInput } from './input/interaction.input'
 import { AdService } from '../ad/ad.service'
 import { InteractionsInput } from './input/interactions.input'
-import { UserLoader } from '../users/loader/user.loader'
-import { AdLoader } from '../ad/loader/ad.loader'
 import { RedisService } from 'src/common/redis/redis.service'
 import { WebSocketMessageGateway } from 'src/common/websocket/websocket.gateway'
+import { InteractionLoader } from './loader/interaction.loader'
 import { MostInteractedDto } from './input/mostInteraction.dto'
 import { User } from '../users/entity/user.entity'
 import { CreateInteractionDto } from './dtos/createInteraction.dto'
@@ -20,9 +19,10 @@ import {
   AdNotFound,
   InteractionNotFound,
   InteractionsNotFound,
+  Limit,
+  Page,
   UserNotFound,
 } from 'src/common/constant/messages.constant'
-import { InteractionLoader } from './loader/interaction.loader'
 
 @Injectable()
 export class InteractionService {
@@ -89,7 +89,7 @@ export class InteractionService {
     return { ...interaction, ad, user }
   }
 
-  async get (page: number = 1, limit: number = 10): Promise<InteractionsInput> {
+  async get (page: number = Page, limit: number = Limit): Promise<InteractionsInput> {
     const [data, total] = await this.interactionRepo.findAndCount({
       take: limit,
       skip: (page - 1) * limit,
@@ -112,8 +112,8 @@ export class InteractionService {
 
   async getUserInteractions (
     userId: number,
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<InteractionsInput> {
     const [data, total] = await this.interactionRepo.findAndCount({
       where: { userId },

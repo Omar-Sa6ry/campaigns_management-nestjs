@@ -14,6 +14,8 @@ import { Ticket } from './entity/ticket.entity'
 import { CreateTicketDto } from './dtos/createTicket.dto'
 import {
   CampaignNotFound,
+  Limit,
+  Page,
   TickestNotFound,
   TicketNotFound,
   UserNotFound,
@@ -96,8 +98,8 @@ export class TicketService {
 
   async getUserTickets (
     userId: number,
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<TicketsInput> {
     const user = await this.userRepo.findOne({ where: { id: userId } })
     if (!user) throw new NotFoundException(UserNotFound)
@@ -132,7 +134,7 @@ export class TicketService {
     return result
   }
 
-  async getAll (page: number = 1, limit: number = 10): Promise<TicketsInput> {
+  async getAll (page: number = Page, limit: number = Limit): Promise<TicketsInput> {
     const [tickets, total] = await this.ticketRepo.findAndCount({
       take: limit,
       skip: (page - 1) * limit,

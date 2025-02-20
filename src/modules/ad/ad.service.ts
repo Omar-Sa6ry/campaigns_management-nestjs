@@ -14,7 +14,6 @@ import { CampaignLoader } from 'src/modules/campaign/loader/campaign.loader'
 import { Campaign } from '../campaign/entity/campaign.entity'
 import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
 import { Partner } from '../partner/entity/partner.entity'
-import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
 import { AdLoader } from 'src/modules/ad/loader/ad.loader'
 import { CampaignInput } from '../campaign/inputs/campain.input'
 import { Repository } from 'typeorm'
@@ -29,6 +28,8 @@ import {
   CampaignNotFound,
   DeleteAd,
   ImageError,
+  Limit,
+  Page,
   UserCampaignsNotFound,
 } from 'src/common/constant/messages.constant'
 
@@ -151,8 +152,8 @@ export class AdService {
 
   async getAds (
     adDto: AdDto,
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<AdsInput> {
     const [data, total] = await this.adRepo.findAndCount({
       where: { ...adDto },
@@ -183,8 +184,8 @@ export class AdService {
 
   async getAdsFromCampaign (
     campaignId: number,
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<AdsInput> {
     const [data, total] = await this.adRepo.findAndCount({
       where: { campaignId },
@@ -213,7 +214,7 @@ export class AdService {
     }
   }
 
-  async listAds (page: number = 1, limit: number = 10): Promise<AdsInput> {
+  async listAds (page: number = Page, limit: number = Limit): Promise<AdsInput> {
     const [data, total] = await this.adRepo.findAndCount({
       take: limit,
       skip: (page - 1) * limit,
@@ -241,8 +242,8 @@ export class AdService {
 
   async getAdsFromUser (
     userId: number,
-    page: number = 1,
-    limit: number = 10,
+    page: number = Page,
+    limit: number = Limit,
   ): Promise<AdsInput> {
     const [userCampaigns, total] = await this.userCampaignRepo.findAndCount({
       where: { userId },

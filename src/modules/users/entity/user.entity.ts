@@ -10,10 +10,14 @@ import {
   PrimaryGeneratedColumn,
   Column,
   OneToMany,
+  Index,
 } from 'typeorm'
 
 @ObjectType()
 @Entity()
+@Index('idx_username', ['username'])
+@Index('idx_email', ['email'])
+@Index('idx_phone', ['phone'])
 export class User {
   @PrimaryGeneratedColumn()
   @Field(() => Int)

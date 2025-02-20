@@ -1,5 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { Campaign } from '../../campaign/entity/campaign.entity'
+import { PartnerStatus } from 'src/common/constant/enum.constant'
+import { User } from 'src/modules/users/entity/user.entity'
 import { Transform } from 'class-transformer'
 import {
   Entity,
@@ -9,14 +11,14 @@ import {
   JoinColumn,
   UpdateDateColumn,
   CreateDateColumn,
-  OneToOne,
-  OneToMany,
+  Index,
 } from 'typeorm'
-import { PartnerStatus } from 'src/common/constant/enum.constant'
-import { User } from 'src/modules/users/entity/user.entity'
 
 @ObjectType()
 @Entity()
+@Index('idx_partner_campaign_id', ['campaignId'])
+@Index('idx_partner_user_id', ['userId'])
+@Index('idx_partner_status', ['status'])
 export class Partner {
   @PrimaryGeneratedColumn()
   @Field(() => Int)

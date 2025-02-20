@@ -15,7 +15,7 @@ import { ResetPasswordDto } from './dtos/ResetPassword.dto'
 import { LoginDto } from './dtos/Login.dto'
 import { ComparePassword } from './utils/comparePassword'
 import { Role } from 'src/common/constant/enum.constant'
-import { SendEmailService } from 'src/common/queue/services/sendemail.service'
+import { SendEmailService } from 'src/common/queues/email/sendemail.service'
 import { RedisService } from 'src/common/redis/redis.service'
 import { CreateUserDto } from './dtos/CreateUserData.dto'
 import {

@@ -11,10 +11,17 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
+  Unique,
+  Index,
 } from 'typeorm'
 
 @Entity()
 @ObjectType()
+@Index('idx_ticket_user_id', ['userId'])
+@Index('idx_ticket_campaign_id', ['campaignId'])
+@Index('idx_ticket_status', ['status'])
+@Index('idx_ticket_expireAt', ['expireAt'])
+@Unique('uq_ticket_user_campaign', ['userId', 'campaignId'])
 export class Ticket {
   @PrimaryGeneratedColumn()
   @Field(() => Int)

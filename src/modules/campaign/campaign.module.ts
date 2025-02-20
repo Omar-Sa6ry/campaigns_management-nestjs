@@ -9,7 +9,7 @@ import { UserModule } from '../users/users.module'
 import { Ad } from '../ad/entity/ad.entity'
 import { Partner } from '../partner/entity/partner.entity'
 import { CampaignLoader } from './loader/campaign.loader'
-import { NotificationModule } from 'src/common/notification/notification.module'
+import { NotificationModule } from 'src/common/queues/notification/notification.module'
 import { User } from '../users/entity/user.entity'
 
 @Module({

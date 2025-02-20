@@ -12,10 +12,14 @@ import {
   CreateDateColumn,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm'
 
 @ObjectType()
 @Entity()
+@Index('idx_ad_campaign_id', ['campaignId'])
+@Index('idx_ad_status', ['status'])
+@Index('idx_ad_type', ['type'])
 export class Ad {
   @PrimaryGeneratedColumn()
   @Field(() => Int)

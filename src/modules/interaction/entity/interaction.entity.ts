@@ -1,6 +1,6 @@
 import { User } from '../../users/entity/user.entity'
 import { InterActionType } from 'src/common/constant/enum.constant'
-import { Field, Int } from '@nestjs/graphql'
+import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { Ad } from '../../ad/entity/ad.entity'
 import {
   Entity,
@@ -9,9 +9,15 @@ import {
   ManyToOne,
   CreateDateColumn,
   JoinColumn,
+  Index,
 } from 'typeorm'
 
+@ObjectType()
 @Entity()
+@Index('idx_interaction_user_id', ['userId'])
+@Index('idx_interaction_id', ['adId'])
+@Index('idx_iteraction_type', ['type'])
+@Index('idx_interaction_user_ad', ['userId', 'adId'])
 export class Interaction {
   @PrimaryGeneratedColumn()
   @Field(() => Int)

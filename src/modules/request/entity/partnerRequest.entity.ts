@@ -1,6 +1,6 @@
 import { Partner } from 'src/modules/partner/entity/partner.entity'
 import { Campaign } from 'src/modules/campaign/entity/campaign.entity'
-import { Field, Int } from '@nestjs/graphql'
+import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { Transform } from 'class-transformer'
 import { PartnerStatus } from 'src/common/constant/enum.constant'
 import {
@@ -12,9 +12,14 @@ import {
   UpdateDateColumn,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm'
 
 @Entity()
+@ObjectType()
+@Index('idx_request_campaign_id', ['campaignId'])
+@Index('idx_request_partner_id', ['partnerId'])
+@Index('idx_request_status', ['status'])
 export class PartnerRequest {
   @PrimaryGeneratedColumn()
   @Field(() => Int)

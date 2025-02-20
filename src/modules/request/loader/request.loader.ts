@@ -29,11 +29,9 @@ export class RequestLoader {
           where: { id: In(keys) },
         })
 
-        const userIds = requests.map(r => r.userId)
         const partnerIds = requests.map(r => r.partnerId)
         const campaignIds = requests.map(r => r.campaignId)
 
-        const users = await this.userRepo.find({ where: { id: In(userIds) } })
         const partners = await this.partnerRepo.find({
           where: { id: In(partnerIds) },
         })
@@ -47,7 +45,6 @@ export class RequestLoader {
           where: { campaignId: In(campaignIds) },
         })
 
-        const userMap = new Map(users.map(u => [u.id, u]))
         const partnerMap = new Map(partners.map(p => [p.id, p]))
         const campaignMap = new Map(
           campaigns.map(c => [c.id, { ...c, ads: [], partners: [] }]),
@@ -69,13 +66,11 @@ export class RequestLoader {
           const request = requests.find(r => r.id === key)
           if (!request) return new Error(`Request with ID ${key} not found`)
 
-          const user: User = userMap.get(request.userId)
           const partner: Partner = partnerMap.get(request.partnerId)
           const campaign: Campaign = campaignMap.get(request.campaignId)
 
           return {
             ...request,
-            user,
             partner: {
               ...partner,
               campaign,

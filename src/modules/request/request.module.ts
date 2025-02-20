@@ -13,6 +13,7 @@ import { UserModule } from '../users/users.module'
 import { RedisModule } from 'src/common/redis/redis.module'
 import { WebSocketModule } from 'src/common/websocket/websocket.module'
 import { TicketModule } from '../ticket/ticket.module'
+import { NotificationModule } from 'src/common/notification/notification.module'
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { TicketModule } from '../ticket/ticket.module'
     TicketModule,
     RedisModule,
     WebSocketModule,
+    NotificationModule,
   ],
   providers: [PartnerRequestResolver, PartnerRequestService, RequestLoader],
 })

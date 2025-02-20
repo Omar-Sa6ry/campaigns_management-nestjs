@@ -9,8 +9,11 @@ import {
   JoinColumn,
   UpdateDateColumn,
   CreateDateColumn,
+  OneToOne,
+  OneToMany,
 } from 'typeorm'
 import { PartnerStatus } from 'src/common/constant/enum.constant'
+import { User } from 'src/modules/users/entity/user.entity'
 
 @ObjectType()
 @Entity()
@@ -35,6 +38,10 @@ export class Partner {
   @Field(() => Int)
   campaignId: number
 
+  @Column()
+  @Field(() => Int)
+  userId: number
+
   @CreateDateColumn({ type: 'timestamp' })
   @Transform(({ value }) => (value ? new Date(value).toLocaleString() : null), {
     toClassOnly: true,
@@ -48,6 +55,13 @@ export class Partner {
   })
   @Field()
   updateAt: Date
+
+  @ManyToOne(() => User, user => user.partners, { nullable: true })
+  @JoinColumn({ name: 'userId' })
+  users: User[]
+
+  @ManyToOne(() => Partner, partner => partner.requests, { nullable: true })
+  requests: Request[]
 
   @ManyToOne(() => Campaign, campaign => campaign.partners, { nullable: true })
   @Field(() => [Campaign], { nullable: true })

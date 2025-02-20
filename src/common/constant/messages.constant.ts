@@ -65,6 +65,10 @@ export const RequestRejected = 'request is rejected'
 // Paganition
 export const Page = 1
 export const Limit = 10
+
+// Notification
+export const PushNotification = 'Push notification sent successfully'
+
 // Image
 export const ImageError = 'Image upload failed:'
 

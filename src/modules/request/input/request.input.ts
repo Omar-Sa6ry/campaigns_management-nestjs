@@ -14,9 +14,6 @@ export class RequestInput {
   @Field(() => Date)
   createdAt: Date
 
-  @Field(() => User)
-  user: User
-
   @Field(() => PartnerInput)
   partner: PartnerInput
 }

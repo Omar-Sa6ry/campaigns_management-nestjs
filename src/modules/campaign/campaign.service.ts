@@ -6,10 +6,11 @@ import { Repository } from 'typeorm'
 import { CreateCampaignCDto } from './dtos/CreateCampaign.dto'
 import { CampaignInput } from './inputs/campain.input'
 import { Ad } from '../ad/entity/ad.entity'
-import { AdLoader } from 'src/modules/ad/loader/ad.loader'
+import { Cron, CronExpression } from '@nestjs/schedule'
+import { NotificationService } from 'src/common/notification/notification.service'
+import { User } from '../users/entity/user.entity'
 import { RedisService } from 'src/common/redis/redis.service'
 import { Partner } from '../partner/entity/partner.entity'
-import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
 import { CampaignDto } from './dtos/Campaign.dto'
 import { CampaignsInput } from './inputs/Campaigns.input'
 import { CampaignLoader } from './loader/campaign.loader'
@@ -27,13 +28,24 @@ export class CampaignService {
     private campaignLoader: CampaignLoader,
     private readonly redisService: RedisService,
     private readonly websocketGateway: WebSocketMessageGateway,
-    @InjectRepository(Ad)
-    private adRepo: Repository<Ad>,
-    @InjectRepository(Campaign)
-    private campaignRepo: Repository<Campaign>,
-    @InjectRepository(Partner)
-    private partnerRepo: Repository<Partner>,
+    private readonly notificationService: NotificationService,
+    @InjectRepository(Ad) private adRepo: Repository<Ad>,
+    @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(Campaign) private campaignRepo: Repository<Campaign>,
+    @InjectRepository(Partner) private partnerRepo: Repository<Partner>,
   ) {}
+
+  // tomorrow's campaigns
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async scheduleCampaignReminders () {
+    await this.notifyUsersBeforeCampaignStarts()
+  }
+
+  //  starting today
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async scheduleCampaignStartNotifications () {
+    await this.notifyUsersAtCampaignStart()
+  }
 
   async create (createCampaign: CreateCampaignCDto): Promise<CampaignInput> {
     const query = this.campaignRepo.manager.connection.createQueryRunner()
@@ -170,5 +182,52 @@ export class CampaignService {
     })
 
     return DeleteCamapaign
+  }
+
+  async notifyUsersBeforeCampaignStarts (): Promise<void> {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    const campaigns = await this.campaignRepo.find({
+      where: { startDate: tomorrow },
+    })
+
+    for (const campaign of campaigns) {
+      const partners = await this.partnerRepo.find({
+        where: { campaignId: campaign.id },
+      })
+
+      for (const partner of partners) {
+        const user = await this.userRepo.findOne({ where: { id: partner.id } })
+        await this.notificationService.sendPushNotification(
+          user.fcmToken,
+          'campaign start!',
+          `Campaign "${campaign.name}" starts in 24 hours!`,
+        )
+      }
+    }
+  }
+
+  async notifyUsersAtCampaignStart (): Promise<void> {
+    const today = new Date()
+
+    const campaigns = await this.campaignRepo.find({
+      where: { startDate: today },
+    })
+
+    for (const campaign of campaigns) {
+      const partners = await this.partnerRepo.find({
+        where: { campaignId: campaign.id },
+      })
+
+      for (const partner of partners) {
+        const user = await this.userRepo.findOne({ where: { id: partner.id } })
+        await this.notificationService.sendPushNotification(
+          user.fcmToken,
+          'campaign has started!',
+          `Campaign "${campaign.name}" has started!`,
+        )
+      }
+    }
   }
 }

@@ -1,18 +1,16 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
+import { Exclude } from 'class-transformer'
+import { Role } from 'src/common/constant/enum.constant'
+import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
+import { Interaction } from 'src/modules/interaction/entity/interaction.entity'
+import { Ticket } from 'src/modules/ticket/entity/ticket.entity'
+import { Partner } from 'src/modules/partner/entity/partner.entity'
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToMany,
   OneToMany,
 } from 'typeorm'
-import { Exclude } from 'class-transformer'
-import { Role } from 'src/common/constant/enum.constant'
-import { Campaign } from 'src/modules/campaign/entity/campaign.entity'
-import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
-import { Interaction } from 'src/modules/interaction/entity/interaction.entity'
-import { Ticket } from 'src/modules/ticket/entity/ticket.entity'
-import { PartnerRequest } from 'src/modules/request/entity/partnerRequest.entity'
 
 @ObjectType()
 @Entity()
@@ -71,11 +69,12 @@ export class User {
   @Field(() => [Ticket], { nullable: true })
   tickets: Ticket[]
 
-  @OneToMany(() => PartnerRequest, PartnerRequest => PartnerRequest.user, {
+  @OneToMany(() => Partner, partner => partner.users, {
     nullable: true,
     onDelete: 'SET NULL',
   })
-  requests: PartnerRequest[]
+  @Field(() => [Partner], { nullable: true })
+  partners: Partner[]
 
   @OneToMany(() => UserCampaign, userCampaign => userCampaign.user, {
     nullable: true,

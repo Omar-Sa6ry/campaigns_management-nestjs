@@ -1,4 +1,4 @@
-import { User } from 'src/modules/users/entity/user.entity'
+import { Partner } from 'src/modules/partner/entity/partner.entity'
 import { Campaign } from 'src/modules/campaign/entity/campaign.entity'
 import { Field, Int } from '@nestjs/graphql'
 import { Transform } from 'class-transformer'
@@ -11,8 +11,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
+  OneToMany,
 } from 'typeorm'
-import { Partner } from 'src/modules/partner/entity/partner.entity'
 
 @Entity()
 export class PartnerRequest {
@@ -50,13 +50,9 @@ export class PartnerRequest {
   @Field()
   updateAt: Date
 
-  @ManyToOne(() => User, user => user.requests)
-  @JoinColumn({ name: 'userId' })
-  user: User
-
-  @ManyToOne(() => User, user => user.requests)
+  @OneToMany(() => Partner, partner => partner.requests)
   @JoinColumn({ name: 'partnerId' })
-  partner: Partner
+  partner: Partner[]
 
   @ManyToOne(() => Campaign, campaign => campaign.requests)
   @JoinColumn({ name: 'campaignId' })

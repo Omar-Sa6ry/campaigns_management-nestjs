@@ -12,6 +12,10 @@ export class CreatePartnerDto {
   campaignId: number
 
   @Field(() => Int)
+  @IsInt()
+  userId: number
+
+  @Field(() => Int)
   @IsPhoneNumber()
   phone: number
 }

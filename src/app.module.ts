@@ -14,6 +14,7 @@ import { UserCampaignModule } from './modules/userCampaign/userCampaign.module'
 import { InteractionModule } from './modules/interaction/interaction.module'
 import { TicketModule } from './modules/ticket/ticket.module'
 import { PartnerRequestModule } from './modules/request/request.module'
+import { ScheduleModule } from '@nestjs/schedule'
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PartnerRequestModule } from './modules/request/request.module'
     GraphqlModule,
     DataBaseModule,
     ThrottlerModule,
+    ScheduleModule.forRoot(),
 
     AuthModule,
     UserModule,

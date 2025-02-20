@@ -13,6 +13,7 @@ import { PartnerStatus } from 'src/common/constant/enum.constant'
 import { Ad } from '../ad/entity/ad.entity'
 import { Partner } from '../partner/entity/partner.entity'
 import { TicketService } from '../ticket/ticket.service'
+import { NotificationService } from 'src/common/notification/notification.service'
 import { RequestInput } from './input/request.input'
 import { RequestLoader } from './loader/request.loader'
 import { RequestsInput } from './input/requests.input'
@@ -23,7 +24,9 @@ import {
   ExistedRequest,
   Limit,
   Page,
+  RequestApprove,
   RequestNotFound,
+  RequestRejected,
   RequestsNotFound,
   UserNotFound,
 } from 'src/common/constant/messages.constant'
@@ -36,6 +39,7 @@ export class PartnerRequestService {
     private readonly requestLoader: RequestLoader,
     private readonly redisService: RedisService,
     private readonly websocketGateway: WebSocketMessageGateway,
+    private readonly notificationService: NotificationService,
     @InjectRepository(PartnerRequest)
     private partnerRequestRepo: Repository<PartnerRequest>,
     @InjectRepository(Ad) private adRepo: Repository<Ad>,
@@ -72,6 +76,7 @@ export class PartnerRequestService {
       const partner = await this.partnerService.create({
         name: user.username,
         campaignId,
+        userId: user.id,
         phone: user.phone,
       })
 
@@ -215,6 +220,11 @@ export class PartnerRequestService {
         expireAt,
       })
 
+      await this.notificationService.sendPushNotification(
+        user.fcmToken,
+        campaign.name,
+        RequestApprove,
+      )
       await query.commitTransaction()
 
       return result
@@ -275,6 +285,12 @@ export class PartnerRequestService {
         requestId: request.id,
         request,
       })
+
+      await this.notificationService.sendPushNotification(
+        user.fcmToken,
+        campaign.name,
+        RequestRejected,
+      )
 
       await query.commitTransaction()
 

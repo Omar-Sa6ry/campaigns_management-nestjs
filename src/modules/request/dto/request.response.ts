@@ -5,7 +5,6 @@ import { IsOptional } from 'class-validator'
 import { PaginationInfo } from 'src/common/dtos/pagintion'
 import { PartnerOutput } from 'src/modules/partner/dtos/partner.respone'
 import { PartnerInput } from 'src/modules/partner/input/partner.input'
-import { User } from 'src/modules/users/entity/user.entity'
 
 @ObjectType()
 export class RequestOutput {
@@ -17,9 +16,6 @@ export class RequestOutput {
 
   @Field(() => Date)
   createdAt: Date
-
-  @Field(() => User)
-  user: User
 
   @Field(() => PartnerOutput)
   partner: PartnerInput

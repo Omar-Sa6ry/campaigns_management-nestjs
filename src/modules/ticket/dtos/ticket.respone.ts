@@ -4,7 +4,6 @@ import { IsOptional } from 'class-validator'
 import { BaseResponse } from 'src/common/dtos/BaseResponse'
 import { PaginationInfo } from 'src/common/dtos/pagintion'
 import { CampaignOutput } from 'src/modules/campaign/dtos/CampaignResponse'
-import { CampaignInput } from 'src/modules/campaign/inputs/campain.input'
 import { User } from 'src/modules/users/entity/user.entity'
 
 @ObjectType()
@@ -25,7 +24,7 @@ export class TicketOutput {
   user: User
 
   @Field(() => CampaignOutput)
-  campaign: CampaignInput
+  campaign: CampaignOutput
 }
 
 @ObjectType()

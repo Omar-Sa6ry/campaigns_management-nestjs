@@ -1,10 +1,10 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { Expose } from 'class-transformer'
 import { IsOptional } from 'class-validator'
+import { AdStatus, AdType } from 'src/common/constant/enum.constant'
 import { BaseResponse } from 'src/common/dtos/BaseResponse'
 import { PaginationInfo } from 'src/common/dtos/pagintion'
 import { CampaignOutput } from 'src/modules/campaign/dtos/CampaignResponse'
-import { CampaignInput } from 'src/modules/campaign/inputs/campain.input'
 
 @ObjectType()
 export class AdOutput {
@@ -14,11 +14,11 @@ export class AdOutput {
   @Field(() => String)
   title: string
 
-  @Field(() => String)
-  status: string
+  @Field(() => AdStatus, { nullable: true })
+  status?: AdStatus
 
-  @Field(() => String)
-  type: string
+  @Field(() => AdType)
+  type: AdType
 
   @Field(() => String)
   content: string
@@ -29,8 +29,14 @@ export class AdOutput {
   @Field(() => String, { nullable: true })
   url: string
 
+  // @Field(() => Int, { nullable: true })
+  // clicks?: number
+
+  // @Field(() => Int, { nullable: true })
+  // views?: number
+
   @Field(() => CampaignOutput)
-  campaign: CampaignInput
+  campaign: CampaignOutput
 }
 
 @ObjectType()

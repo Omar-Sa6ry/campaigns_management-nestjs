@@ -1,12 +1,8 @@
 import { Field, InputType, Int } from '@nestjs/graphql'
-import { IsString, IsInt, IsPhoneNumber } from 'class-validator'
+import { IsInt } from 'class-validator'
 
 @InputType()
 export class CreatePartnerDto {
-  @Field()
-  @IsString()
-  name: string
-
   @Field(() => Int)
   @IsInt()
   campaignId: number
@@ -14,8 +10,4 @@ export class CreatePartnerDto {
   @Field(() => Int)
   @IsInt()
   userId: number
-
-  @Field(() => Int)
-  @IsPhoneNumber()
-  phone: number
 }

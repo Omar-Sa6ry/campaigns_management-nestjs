@@ -10,7 +10,7 @@ import { AppResolver } from './app.resolver'
 import { PartnerModule } from './modules/partner/partner.module'
 import { AdModule } from './modules/ad/ad.module'
 import { CampaignModule } from './modules/campaign/campaign.module'
-import { UserCampaignModule } from './modules/userCampaign/userCampaign.module'
+// import { UserCampaignModule } from './modules/userCampaign/userCampaign.module'
 import { InteractionModule } from './modules/interaction/interaction.module'
 import { TicketModule } from './modules/ticket/ticket.module'
 import { PartnerRequestModule } from './modules/request/request.module'
@@ -28,7 +28,7 @@ import { ScheduleModule } from '@nestjs/schedule'
     UserModule,
     PartnerModule,
     CampaignModule,
-    UserCampaignModule,
+    // UserCampaignModule,
     InteractionModule,
     AdModule,
     TicketModule,

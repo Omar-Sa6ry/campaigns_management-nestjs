@@ -3,8 +3,8 @@ import { Expose } from 'class-transformer'
 import { BaseResponse } from 'src/common/dtos/BaseResponse'
 import { IsInt, IsOptional } from 'class-validator'
 import { PaginationInfo } from 'src/common/dtos/pagintion'
-import { AdInput } from 'src/modules/ad/dtos/adInput.dto'
 import { User } from 'src/modules/users/entity/user.entity'
+import { AdOutput } from 'src/modules/ad/dtos/adResponse.dto'
 
 @ObjectType()
 export class InteractionOutput {
@@ -18,8 +18,8 @@ export class InteractionOutput {
   @Field(() => User)
   user: User
 
-  @Field(() => AdInput)
-  ad: AdInput
+  @Field(() => AdOutput)
+  ads: AdOutput
 
   @Field()
   createdAt: Date

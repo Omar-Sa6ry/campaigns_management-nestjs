@@ -21,6 +21,7 @@ import {
   Limit,
   Page,
 } from 'src/common/constant/messages.constant'
+// import { UserCampaignService } from '../userCampaign/userCampaign.service'
 
 @Injectable()
 export class CampaignService {
@@ -29,6 +30,7 @@ export class CampaignService {
     private readonly redisService: RedisService,
     private readonly websocketGateway: WebSocketMessageGateway,
     private readonly notificationService: NotificationService,
+    // private readonly userCampaignService: UserCampaignService,
     @InjectRepository(Ad) private adRepo: Repository<Ad>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Campaign) private campaignRepo: Repository<Campaign>,
@@ -47,7 +49,10 @@ export class CampaignService {
     await this.notifyUsersAtCampaignStart()
   }
 
-  async create (createCampaign: CreateCampaignCDto): Promise<CampaignInput> {
+  async create (
+    createCampaign: CreateCampaignCDto,
+    userId: number,
+  ): Promise<CampaignInput> {
     const query = this.campaignRepo.manager.connection.createQueryRunner()
     await query.startTransaction()
 
@@ -57,6 +62,7 @@ export class CampaignService {
 
       const campaign = this.campaignRepo.create({
         ...createCampaign,
+        userId,
         startDate: tomorrow,
       })
       await this.campaignRepo.save(campaign)
@@ -68,6 +74,7 @@ export class CampaignService {
         campaignId: campaign.id,
         campaign,
       })
+
       await query.commitTransaction()
 
       return campaign

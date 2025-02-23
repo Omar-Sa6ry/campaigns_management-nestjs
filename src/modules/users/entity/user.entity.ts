@@ -1,7 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { Exclude } from 'class-transformer'
 import { Role } from 'src/common/constant/enum.constant'
-import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
+// import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
 import { Interaction } from 'src/modules/interaction/entity/interaction.entity'
 import { Ticket } from 'src/modules/ticket/entity/ticket.entity'
 import { Partner } from 'src/modules/partner/entity/partner.entity'
@@ -12,6 +12,7 @@ import {
   OneToMany,
   Index,
 } from 'typeorm'
+import { Campaign } from 'src/modules/campaign/entity/campaign.entity'
 
 @ObjectType()
 @Entity()
@@ -32,8 +33,8 @@ export class User {
   email: string
 
   @Column({ unique: true })
-  @Field()
-  phone: number
+  @Field(() => String)
+  phone: string
 
   @Column()
   @Exclude()
@@ -80,10 +81,17 @@ export class User {
   @Field(() => [Partner], { nullable: true })
   partners: Partner[]
 
-  @OneToMany(() => UserCampaign, userCampaign => userCampaign.user, {
+  @OneToMany(() => Campaign, campaign => campaign.user, {
     nullable: true,
     onDelete: 'SET NULL',
   })
-  @Field(() => [UserCampaign], { nullable: true })
-  joinedCampaigns: UserCampaign[]
+  @Field(() => [Campaign], { nullable: true })
+  campaigns: Campaign[]
+
+  // @OneToMany(() => UserCampaign, userCampaign => userCampaign.user, {
+  //   nullable: true,
+  //   onDelete: 'SET NULL',
+  // })
+  // @Field(() => [UserCampaign], { nullable: true })
+  // joinedCampaigns: UserCampaign[]
 }

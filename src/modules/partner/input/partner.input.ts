@@ -9,8 +9,8 @@ export class PartnerInput {
   @Field(() => String)
   name: string
 
-  @Field(() => Int)
-  phone: number
+  @Field()
+  phone: string
 
   @Field(() => Date)
   createdAt: Date

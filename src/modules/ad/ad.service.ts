@@ -12,7 +12,7 @@ import { CampaignService } from '../campaign/campaign.service'
 import { AdDto } from './dtos/Ad.dto'
 import { CampaignLoader } from 'src/modules/campaign/loader/campaign.loader'
 import { Campaign } from '../campaign/entity/campaign.entity'
-import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
+// import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
 import { Partner } from '../partner/entity/partner.entity'
 import { AdLoader } from 'src/modules/ad/loader/ad.loader'
 import { CampaignInput } from '../campaign/inputs/campain.input'
@@ -20,7 +20,7 @@ import { Repository } from 'typeorm'
 import { CreateImagDto } from 'src/common/upload/dtos/createImage.dto'
 import { CreateADto } from './dtos/createAd.dto'
 import { UploadService } from 'src/common/upload/upload.service'
-import { AdType } from 'src/common/constant/enum.constant'
+import { AdType, InterActionType } from 'src/common/constant/enum.constant'
 import {
   AdNotFound,
   AdsNotFound,
@@ -32,25 +32,27 @@ import {
   Page,
   UserCampaignsNotFound,
 } from 'src/common/constant/messages.constant'
+import { InteractionService } from '../interaction/interaction.service'
+import { SendEmailService } from 'src/common/queues/email/sendemail.service'
 
 @Injectable()
 export class AdService {
   constructor (
     private adLoader: AdLoader,
-    private campaignLoader: CampaignLoader,
     private readonly redisService: RedisService,
     private readonly uploadService: UploadService,
     private readonly campaignService: CampaignService,
     private readonly websocketGateway: WebSocketMessageGateway,
+    private readonly interactionService: InteractionService,
     @InjectRepository(Ad)
     private adRepo: Repository<Ad>,
     @InjectRepository(Campaign)
     private campaignRepo: Repository<Campaign>,
     @InjectRepository(Partner)
     private partnerRepo: Repository<Partner>,
-    @InjectRepository(UserCampaign)
-    private userCampaignRepo: Repository<UserCampaign>,
-  ) {}
+  ) // @InjectRepository(UserCampaign)
+  // private userCampaignRepo: Repository<UserCampaign>,
+  {}
 
   async create (
     createAd: CreateADto,
@@ -81,6 +83,7 @@ export class AdService {
       const ad = this.adRepo.create({
         ...createAd,
         url,
+        campaignId: campaign.id,
       })
       await this.adRepo.save(ad)
 
@@ -93,7 +96,7 @@ export class AdService {
         where: { campaignId: campaign.id },
       })
 
-      const resilt: AdInput = {
+      const result: AdInput = {
         ...ad,
         campaign: {
           ...campaign,
@@ -103,15 +106,15 @@ export class AdService {
       }
 
       const relationCacheKey = `ad:${ad.id}`
-      await this.redisService.set(relationCacheKey, resilt)
+      await this.redisService.set(relationCacheKey, result)
 
       await this.websocketGateway.broadcast('adCreated', {
         adId: ad.id,
-        ad: resilt,
+        ad: result,
       })
       await query.commitTransaction()
 
-      return resilt
+      return result
     } catch (error) {
       await query.rollbackTransaction()
       throw error
@@ -120,7 +123,7 @@ export class AdService {
     }
   }
 
-  async getAdById (id: number): Promise<AdInput> {
+  async getAdById (id: number, userId?: number): Promise<AdInput> {
     const ad = await this.adRepo.findOne({
       where: { id },
       relations: ['campaign'],
@@ -139,8 +142,19 @@ export class AdService {
       where: { campaignId: campaign.id },
     })
 
-    const result: AdInput = {
+    if (userId) {
+      await this.interactionService.create(userId, {
+        type: InterActionType.CLICK,
+        adId: ad.id,
+      })
+    }
+    const clicks = await this.interactionService.countAdClick(ad.id)
+    const views = await this.interactionService.countAdClick(ad.id)
+
+    const result = {
       ...ad,
+      clicks,
+      views,
       campaign: { ...campaign, ads, partners },
     }
 
@@ -154,6 +168,7 @@ export class AdService {
     adDto: AdDto,
     page: number = Page,
     limit: number = Limit,
+    userId?: number,
   ): Promise<AdsInput> {
     const [data, total] = await this.adRepo.findAndCount({
       where: { ...adDto },
@@ -167,18 +182,25 @@ export class AdService {
     const adIds = data.map(ad => ad.id)
     const ads = await this.adLoader.loadMany(adIds)
 
-    const items = ads.map((a, index) => {
-      const ad = ads[index]
-      if (!ad) throw new NotFoundException(AdNotFound)
+    const items = await Promise.all(
+      ads.map(async (a, index) => {
+        const ad = ads[index]
+        if (!ad) throw new NotFoundException(AdNotFound)
 
-      return ad
-    })
+        if (userId) {
+          await this.interactionService.create(userId, {
+            type: InterActionType.CLICK,
+            adId: ad.id,
+          })
+        }
+
+        return ad
+      }),
+    )
 
     return {
       items,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
+      pagination: { total, page, totalPages: Math.ceil(total / limit) },
     }
   }
 
@@ -187,6 +209,11 @@ export class AdService {
     page: number = Page,
     limit: number = Limit,
   ): Promise<AdsInput> {
+    const campaign = await this.campaignRepo.findOne({
+      where: { id: campaignId },
+    })
+    if (!campaign) throw new NotFoundException(CampaignNotFound)
+
     const [data, total] = await this.adRepo.findAndCount({
       where: { campaignId },
       take: limit,
@@ -208,9 +235,7 @@ export class AdService {
 
     return {
       items,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
+      pagination: { total, page, totalPages: Math.ceil(total / limit) },
     }
   }
 
@@ -234,47 +259,45 @@ export class AdService {
 
     return {
       items,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
+      pagination: { total, page, totalPages: Math.ceil(total / limit) },
     }
   }
 
-  async getAdsFromUser (
-    userId: number,
-    page: number = Page,
-    limit: number = Limit,
-  ): Promise<AdsInput> {
-    const [userCampaigns, total] = await this.userCampaignRepo.findAndCount({
-      where: { userId },
-      take: limit,
-      skip: (page - 1) * limit,
-      order: { joinAt: 'DESC' },
-    })
-    if (!userCampaigns) throw new BadRequestException(UserCampaignsNotFound)
+  // async getAdsFromUser (
+  //   userId: number,
+  //   page: number = Page,
+  //   limit: number = Limit,
+  // ): Promise<AdsInput> {
+  //   const [userCampaigns, total] = await this.userCampaignRepo.findAndCount({
+  //     where: { userId },
+  //     take: limit,
+  //     skip: (page - 1) * limit,
+  //     order: { joinAt: 'DESC' },
+  //   })
+  //   if (!userCampaigns) throw new BadRequestException(UserCampaignsNotFound)
 
-    const campaignIds = userCampaigns.map(ad => ad.campaignId)
-    const campaigns = await this.campaignLoader.loadMany(campaignIds)
+  //   const campaignIds = userCampaigns.map(ad => ad.campaignId)
+  //   const campaigns = await this.campaignLoader.loadMany(campaignIds)
 
-    const adIds = campaigns.map(campaign => campaign.ads.map(i => i.id)).flat()
-    const ads = await this.adLoader.loadMany(adIds)
+  //   const adIds = campaigns.map(campaign => campaign.ads.map(i => i.id)).flat()
+  //   const ads = await this.adLoader.loadMany(adIds)
 
-    const items: AdInput[] = ads.map((a, index) => {
-      const ad = ads[index]
-      if (!ad) throw new NotFoundException(AdNotFound)
+  //   const items: AdInput[] = ads.map((a, index) => {
+  //     const ad = ads[index]
+  //     if (!ad) throw new NotFoundException(AdNotFound)
 
-      const campaign = campaigns[index]
-      if (!campaign) throw new NotFoundException(CampaignNotFound)
+  //     const campaign = campaigns[index]
+  //     if (!campaign) throw new NotFoundException(CampaignNotFound)
 
-      return ad
-    })
+  //     return ad
+  //   })
 
-    const result = { items, total, page, totalPages: Math.ceil(total / limit) }
-    const relationCacheKey = `ad-user:${userId}`
-    await this.redisService.set(relationCacheKey, result)
+  //   const result = { items, total, page, totalPages: Math.ceil(total / limit) }
+  //   const relationCacheKey = `ad-user:${userId}`
+  //   await this.redisService.set(relationCacheKey, result)
 
-    return result
-  }
+  //   return result
+  // }
 
   async getCampaignFromAd (campaignId: number): Promise<CampaignInput> {
     const ad = await this.adRepo.findOne({
@@ -315,7 +338,7 @@ export class AdService {
     await query.startTransaction()
 
     try {
-      const ad = await this.getAdById(id)
+      const ad = await this.adRepo.findOne({ where: { id } })
       if (!ad) throw new NotFoundException(AdNotFound)
 
       if (createMediaDo && updateAdDto.type !== AdType.TEXT) {
@@ -347,7 +370,9 @@ export class AdService {
       const ad = await this.adRepo.findOne({ where: { id } })
       if (!ad) throw new NotFoundException(AdNotFound)
 
-      await this.uploadService.deleteMedia(ad.url)
+      if (ad.url) {
+        await this.uploadService.deleteMedia(ad.url)
+      }
       await this.adRepo.remove(ad)
 
       await this.websocketGateway.broadcast('adDeleted', {

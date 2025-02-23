@@ -3,6 +3,8 @@ import { CampaignService } from './campaign.service'
 import { Campaign } from './entity/campaign.entity'
 import { RedisService } from 'src/common/redis/redis.service'
 import { CreateCampaignCDto } from './dtos/CreateCampaign.dto'
+import { CurrentUserDto } from 'src/common/dtos/currentUser.dto'
+import { CurrentUser } from 'src/common/decerator/currentUser.decerator'
 import { CampaignDto } from './dtos/Campaign.dto'
 import { Auth } from 'src/common/decerator/auth.decerator'
 import { Role } from 'src/common/constant/enum.constant'
@@ -23,8 +25,9 @@ export class CampaignResolver {
   @Auth(Role.ADMIN, Role.MANAGER)
   async createCampaign (
     @Args('createCampaignDto') createCampaignDto: CreateCampaignCDto,
+      @CurrentUser() user: CurrentUserDto,
   ): Promise<CampaignResponse> {
-    const data = await this.campaignService.create(createCampaignDto)
+    const data = await this.campaignService.create(createCampaignDto,user.id)
 
     return {
       statusCode: 201,

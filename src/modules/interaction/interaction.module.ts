@@ -11,10 +11,11 @@ import { AdModule } from '../ad/ad.module'
 import { Ad } from '../ad/entity/ad.entity'
 import { InteractionLoader } from './loader/interaction.loader'
 import { Campaign } from '../campaign/entity/campaign.entity'
+import { Partner } from '../partner/entity/partner.entity'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Interaction, Campaign, Ad, User]),
+    TypeOrmModule.forFeature([Interaction, Partner, Campaign, Ad, User]),
     RedisModule,
     UserModule,
     AdModule,

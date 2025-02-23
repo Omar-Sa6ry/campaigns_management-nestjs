@@ -11,6 +11,7 @@ import { Partner } from '../partner/entity/partner.entity'
 import { CampaignLoader } from './loader/campaign.loader'
 import { NotificationModule } from 'src/common/queues/notification/notification.module'
 import { User } from '../users/entity/user.entity'
+// import { UserCampaignModule } from '../userCampaign/userCampaign.module'
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { User } from '../users/entity/user.entity'
     UserModule,
     NotificationModule,
     RedisModule,
+    // UserCampaignModule,
     WebSocketModule,
   ],
   providers: [CampaignResolver, CampaignService, CampaignLoader],

@@ -5,34 +5,32 @@ import { AdStatus, AdType } from 'src/common/constant/enum.constant'
 @InputType()
 export class AdDto {
   @IsOptional()
-  @Field()
+  @Field({ nullable: true }) // Add nullable: true
   @IsString()
   title?: string
 
   @IsOptional()
-  @Field()
+  @Field({ nullable: true }) // Add nullable: true
   @IsString()
   url?: string
 
   @IsOptional()
-  @Field(() => AdType)
-  @IsEnum(AdType)
+  @Field(() => AdType, { nullable: true }) // Add nullable: true
   type?: AdType
 
   @IsOptional()
-  @Field(() => AdStatus)
-  @IsEnum(AdStatus)
+  @Field(() => AdStatus, { nullable: true }) // Add nullable: true
   status?: AdStatus
 
   @IsOptional()
-  @Field()
+  @Field({ nullable: true }) // Add nullable: true
   @IsString()
   content?: string
 
   @IsOptional()
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true }) // Add nullable: true
   @IsInt()
-  camaignId?: number
+  campaignId?: number // Fixed typo: "camaignId" -> "campaignId"
 
   @IsOptional()
   @Field(() => Date, { nullable: true })

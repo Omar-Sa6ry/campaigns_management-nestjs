@@ -13,17 +13,6 @@ export class GeneralResponseInterceptor<T> implements NestInterceptor<T, any> {
   intercept (context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map(data => {
-        console.log({
-          success: true,
-          statusCode: data?.statusCode || 200,
-          message: data?.message || 'Request successful',
-          timeStamp: new Date().toISOString().split('T')[0],
-          pagination: data?.pagination,
-          items: Array.isArray(data?.items)
-            ? data.items
-            : data?.data?.items || [],
-          data: Array.isArray(data) ? data : data?.data || {},
-        })
         return {
           success: true,
           statusCode: data?.statusCode || 200,

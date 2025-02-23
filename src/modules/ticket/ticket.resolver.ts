@@ -24,11 +24,16 @@ export class TicketResolver {
   async createTicket (
     @CurrentUser() user: CurrentUserDto,
     @Args('createTicketDto') createTicketDto: CreateTicketDto,
+    @Args('email') email: string,
   ): Promise<TicketResponse> {
     return {
       statusCode: 201,
       message: CreateTicket,
-      data: await this.ticketService.createTicket(user.id, createTicketDto),
+      data: await this.ticketService.createTicket(
+        user.id,
+        email,
+        createTicketDto,
+      ),
     }
   }
 
@@ -78,11 +83,14 @@ export class TicketResolver {
     return { data: await this.ticketService.expireTicket(ticketId) }
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => TicketResponse)
   async validateTicket (
     @Args('ticketId', { type: () => Int }) ticketId: number,
-  ): Promise<boolean> {
-    return this.ticketService.validateTicket(ticketId)
+  ): Promise<TicketResponse> {
+    return {
+      message: `ticket is ${await this.ticketService.validateTicket(ticketId)}`,
+      data: null,
+    }
   }
 
   @Mutation(() => String)

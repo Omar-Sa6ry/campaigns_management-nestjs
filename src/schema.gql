@@ -5,26 +5,28 @@
 type Partner {
   id: Int!
   name: String!
-  phone: Int!
-  campaigns: [Campaign!]
-}
-
-type Ad {
-  id: Int!
-  title: String!
-  content: String!
-  type: String!
   status: String!
+  phone: String!
   campaignId: Int!
+  userId: Int!
   createdAt: DateTime!
   updateAt: DateTime!
-  campaign: Campaign!
+  campaign: [Campaign!]
 }
 
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type Ticket {
+  id: Int!
+  userId: Int!
+  campaignId: Int!
+  expireAt: DateTime!
+  createdAt: DateTime!
+  updateAt: DateTime!
+}
 
 type Campaign {
   id: Int!
@@ -33,26 +35,65 @@ type Campaign {
   startDate: DateTime!
   endDate: DateTime!
   status: String!
+  userId: Int!
   createdAt: DateTime!
   updateAt: DateTime!
   ads: [Ad!]
-  joinedCampaigns: [UserCampaign!]
+  tickets: [Ticket!]
   partners: [Partner!]
+  user: User!
 }
 
-type UserCampaign {
+type Ad {
   id: Int!
+  title: String!
+  content: String!
+  type: AdType!
+  url: String
+  status: AdStatus!
   campaignId: Int!
+  createdAt: DateTime!
+  updateAt: DateTime!
+  campaign: Campaign!
+  interactions: [Interaction!]
+}
+
+enum AdType {
+  IMAGE
+  VIDEO
+  TEXT
+  BANNER
+}
+
+enum AdStatus {
+  DRAFT
+  PENDING
+  ACTIVE
+  PAUSED
+  EXPIRED
+  REJECTED
+  ARCHIVED
+}
+
+type Interaction {
+  id: Int!
   userId: Int!
-  campaign: Campaign
-  user: User
+  adId: Int!
+  user: User!
+  ad: Ad!
+  type: String!
+  createdAt: DateTime!
 }
 
 type User {
   id: Int!
   username: String!
   email: String!
-  joinedCampaigns: [UserCampaign!]
+  phone: String!
+  interactions: [Interaction!]
+  tickets: [Ticket!]
+  partners: [Partner!]
+  campaigns: [Campaign!]
 }
 
 type AuthOutPut {
@@ -82,8 +123,59 @@ type UserResponse {
 
 type PaginationInfo {
   totalPages: Int!
-  currentPage: Int!
-  totalItems: Int!
+  page: Int!
+  total: Int!
+}
+
+type AdOutput {
+  id: Int!
+  title: String!
+  status: AdStatus
+  type: AdType!
+  content: String!
+  createdAt: DateTime!
+  url: String
+  campaign: CampaignOutput!
+}
+
+type AdsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [AdOutput!]
+  pagination: PaginationInfo
+}
+
+type AdResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: AdOutput
+}
+
+type CampaignOutput {
+  id: Int!
+  name: String!
+  description: String!
+  status: CampaignStatus!
+  startDate: DateTime!
+  endDate: DateTime!
+  createdAt: DateTime!
+  ads: [AdOutput!]
+  partners: [Partner!]
+}
+
+enum CampaignStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+  REJECTED
 }
 
 type CampaignsResponse {
@@ -91,7 +183,7 @@ type CampaignsResponse {
   success: Boolean
   timeStamp: String
   statusCode: Float
-  items: [Campaign!]
+  items: [CampaignOutput!]
   pagination: PaginationInfo
 }
 
@@ -100,35 +192,112 @@ type CampaignResponse {
   success: Boolean
   timeStamp: String
   statusCode: Float
-  data: Campaign
+  data: CampaignOutput
 }
 
-type UserCampaignOutput {
+type PartnerOutput {
+  id: Int!
+  name: String!
+  phone: String!
+  createdAt: DateTime!
+  campaign: CampaignOutput!
+}
+
+type PartnersResponse {
   message: String
   success: Boolean
   timeStamp: String
   statusCode: Float
-  id: Float!
-  user: User!
-  campaign: Campaign!
-  joinAt: DateTime!
-}
-
-type UserCampaignsResponse {
-  message: String
-  success: Boolean
-  timeStamp: String
-  statusCode: Float
-  items: [UserCampaign!]
+  items: [PartnerOutput!]
   pagination: PaginationInfo
 }
 
-type UserCampaignResponse {
+type PartnerResponse {
   message: String
   success: Boolean
   timeStamp: String
   statusCode: Float
-  data: UserCampaignOutput
+  data: PartnerOutput
+}
+
+type MostInteractedDto {
+  adId: Int!
+  count: Int!
+}
+
+type InteractionOutput {
+  id: Float!
+  type: String!
+  user: User!
+  ads: AdOutput!
+  createdAt: DateTime!
+}
+
+type InteractionsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [InteractionOutput!]
+  pagination: PaginationInfo
+}
+
+type InteractionResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: InteractionOutput
+}
+
+type TicketOutput {
+  id: Int!
+  status: String!
+  expireAt: DateTime!
+  createdAt: DateTime!
+  user: User!
+  campaign: CampaignOutput!
+}
+
+type TicketsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [TicketOutput!]
+  pagination: PaginationInfo
+}
+
+type TicketResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: TicketOutput
+}
+
+type RequestOutput {
+  id: Int!
+  status: String!
+  createdAt: DateTime!
+  partner: PartnerOutput!
+}
+
+type RequestsResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  items: [RequestOutput!]
+  pagination: PaginationInfo
+}
+
+type RequestResponse {
+  message: String
+  success: Boolean
+  timeStamp: String
+  statusCode: Float
+  data: RequestOutput
 }
 
 type Query {
@@ -137,19 +306,37 @@ type Query {
   getUserByEmail(email: String!): UserResponse!
   getUserByusername(username: String!): UserResponse!
   deleteUser: String!
-  getCampaignById(id: Int!): UserCampaignResponse!
-  getCampaigns(
-    campaignDto: CampaignDto!
-    page: Int
-    limit: Int
-  ): CampaignsResponse!
+  getPartnerById(id: Int!): PartnerResponse!
+  getPartners(limit: Int, page: Int): PartnersResponse!
+  getPartnersWithData(partnerDto: PartnerDto!, limit: Int, page: Int): PartnersResponse!
+  getAdsFromPartner(partnerId: Float!, limit: Int, page: Int): AdsResponse!
+  getCampaignFromPartner(campaignId: Int!): CampaignResponse!
+  getPartnersFromUserAdmin(userId: Int!): PartnersResponse!
+  getPartnersFromUser: PartnersResponse!
+  getCampaignById(id: Int!): CampaignResponse!
+  getCampaigns(campaignDto: CampaignDto!, page: Int, limit: Int): CampaignsResponse!
   getListCampaigns(page: Int, limit: Int): CampaignsResponse!
-  getUserCampaigns(userId: Int!, page: Int, limit: Int): UserCampaignsResponse!
-  getCampaignsFromUser(
-    campaignId: Int!
-    page: Int
-    limit: Int
-  ): UserCampaignsResponse!
+  getAd(id: Float!): AdResponse!
+  getAds(adDto: AdDto!, page: Float! = 1, limit: Float! = 10): AdsResponse!
+  ListAds(page: Float! = 1, limit: Float! = 10): AdsResponse!
+  getAdsFromCampaign(campaignId: Float!, page: Float! = 1, limit: Float! = 10): AdsResponse!
+  getCampaignFromAd(campaignId: Float!): CampaignResponse!
+  getInteractionById(id: Int!): InteractionResponse!
+  getInteractions(page: Int, limit: Int): InteractionsResponse!
+  getUserInteractionsByAdmin(userId: Int!, page: Int, limit: Int): InteractionsResponse!
+  getUserInteractions(page: Int, limit: Int): InteractionsResponse!
+  countAdViews(adId: Int!): InteractionResponse!
+  countAdCkicks(adId: Int!): InteractionResponse!
+  getMostInteractedAds(limit: Int): [MostInteractedDto!]!
+  getTicketById(id: Int!): TicketResponse
+  getUserTickets(page: Int, limit: Int): TicketsResponse!
+  getAllTickets(page: Int, limit: Int): TicketsResponse!
+  getRequests(status: PartnerStatus!, page: Float! = 1, limit: Float! = 10): RequestsResponse!
+}
+
+input PartnerDto {
+  name: String
+  campaignId: Int
 }
 
 input CampaignDto {
@@ -157,6 +344,23 @@ input CampaignDto {
   description: String
   startDate: DateTime
   endDate: DateTime
+  createdAt: DateTime
+}
+
+input AdDto {
+  title: String
+  url: String
+  type: AdType
+  status: AdStatus
+  content: String
+  campaignId: Int
+  createdAt: DateTime
+}
+
+enum PartnerStatus {
+  PENDING
+  APPROVES
+  REJECTED
 }
 
 type Mutation {
@@ -170,17 +374,31 @@ type Mutation {
   logout: Boolean!
   updateUser(updateUserDto: UpdateUserDto!): UserResponse!
   UpdateUserRole(checkEmail: String!, companyId: Float!): String!
+  createPartner(createPartner: CreatePartnerDto!): PartnerResponse!
+  updatePartner(id: Int!, updateData: PartnerDto!): PartnerResponse!
+  deletePartner(id: Int!): PartnerResponse!
   createCampaign(createCampaignDto: CreateCampaignCDto!): CampaignResponse!
   UpdateCampaign(id: Int!, updateCampaignDto: CampaignDto!): CampaignResponse!
   deleteCampaign(id: Int!): CampaignResponse!
-  joinCampaign(userId: Int!, campaignId: Int!): UserCampaignResponse!
-  deleteUserFromCampaign: String!
-  removeUserFromCampaign(userId: Int!, campaignId: Int!): String!
+  createAd(createAd: CreateADto!, CreateMediaDo: CreateImagDto): AdResponse!
+  updateAd(id: Float!, updateAdDto: AdDto!): AdResponse!
+  deleteAd(id: Float!): AdResponse!
+  uploadImage(createImageInput: CreateImagDto!, dirUpload: String = "avatars"): String!
+  createInteraction(data: CreateInteractionDto!): InteractionResponse!
+  createTicket(createTicketDto: CreateTicketDto!, email: String!): TicketResponse!
+  expireTicket(ticketId: Int!): TicketResponse!
+  validateTicket(ticketId: Int!): TicketResponse!
+  deleteTicket(ticketId: Int!): String!
+  createRequest(campaignId: Float!): RequestResponse!
+  getRequestById(requestId: Float!): RequestResponse!
+  approvePartnership(requestId: Float!, expireAt: DateTime!, email: String!): RequestResponse!
+  rejectPartnership(requestId: Float!): RequestResponse!
 }
 
 input CreateUserDto {
   username: String!
   email: String!
+  phone: String!
   password: String!
 }
 
@@ -205,9 +423,45 @@ input UpdateUserDto {
   phone: String
 }
 
+input CreatePartnerDto {
+  campaignId: Int!
+  userId: Int!
+}
+
 input CreateCampaignCDto {
   name: String!
   description: String!
   startDate: DateTime!
   endDate: DateTime!
+}
+
+input CreateADto {
+  title: String!
+  type: AdType!
+  content: String!
+  camaignId: Int!
+}
+
+input CreateImagDto {
+  name: String!
+  breed: String!
+  image: Upload!
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
+input CreateInteractionDto {
+  type: InterActionType!
+  adId: Int!
+}
+
+enum InterActionType {
+  VIEW
+  CLICK
+}
+
+input CreateTicketDto {
+  campaignId: Int!
+  expireAt: DateTime!
 }

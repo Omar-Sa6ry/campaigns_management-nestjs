@@ -12,6 +12,7 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   Index,
+  Unique,
 } from 'typeorm'
 
 @ObjectType()
@@ -19,6 +20,7 @@ import {
 @Index('idx_partner_campaign_id', ['campaignId'])
 @Index('idx_partner_user_id', ['userId'])
 @Index('idx_partner_status', ['status'])
+@Unique(['campaignId', 'userId'])
 export class Partner {
   @PrimaryGeneratedColumn()
   @Field(() => Int)
@@ -32,9 +34,9 @@ export class Partner {
   @Field()
   status: PartnerStatus
 
-  @Column({ unique: true })
-  @Field(() => Int)
-  phone: number
+  @Column()
+  @Field(() => String)
+  phone: string
 
   @Column()
   @Field(() => Int)
@@ -65,8 +67,11 @@ export class Partner {
   @ManyToOne(() => Partner, partner => partner.requests, { nullable: true })
   requests: Request[]
 
-  @ManyToOne(() => Campaign, campaign => campaign.partners, { nullable: true })
+  @ManyToOne(() => Campaign, campaign => campaign.partners, {
+    eager: true,
+    nullable: true,
+  })
   @Field(() => [Campaign], { nullable: true })
   @JoinColumn({ name: 'campaignId' })
-  campaigns: Campaign[]
+  campaign: Campaign[]
 }

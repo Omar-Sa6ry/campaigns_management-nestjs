@@ -44,7 +44,7 @@ export class AuthService {
     fcmToken: string,
     createUserDto: CreateUserDto,
   ): Promise<AuthInput> {
-    const { username, email } = createUserDto
+    const { username, email, phone } = createUserDto
     if (!email.endsWith('@gmail.com')) {
       throw new BadRequestException(EndOfEmail)
     }
@@ -55,6 +55,7 @@ export class AuthService {
       const user = await this.userRepository.create({
         username,
         email,
+        phone,
         password: await HashPassword(createUserDto.password),
       })
       await this.userRepository.save(user)

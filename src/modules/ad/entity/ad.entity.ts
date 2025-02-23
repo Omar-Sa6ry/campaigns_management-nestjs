@@ -37,7 +37,7 @@ export class Ad {
     type: 'enum',
     enum: AdType,
   })
-  @Field()
+  @Field(() => AdType)
   type: AdType
 
   @Column({ nullable: true })
@@ -49,7 +49,7 @@ export class Ad {
     enum: AdStatus,
     default: AdStatus.PENDING,
   })
-  @Field()
+  @Field(() => AdStatus)
   status: AdStatus
 
   @Column()

@@ -1,8 +1,10 @@
+import { User } from 'src/modules/users/entity/user.entity';
 import { Transform } from 'class-transformer'
 import { Field, Int, ObjectType } from '@nestjs/graphql'
 import { Partner } from '../../partner/entity/partner.entity'
 import { CampaignStatus } from 'src/common/constant/enum.constant'
-import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
+import { PartnerRequest } from 'src/modules/request/entity/partnerRequest.entity'
+// import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
 import { Ticket } from 'src/modules/ticket/entity/ticket.entity'
 import { Ad } from '../../ad/entity/ad.entity'
 import {
@@ -13,8 +15,9 @@ import {
   CreateDateColumn,
   Index,
   UpdateDateColumn,
+  JoinColumn,
+  ManyToOne,
 } from 'typeorm'
-import { PartnerRequest } from 'src/modules/request/entity/partnerRequest.entity'
 
 @ObjectType()
 @Entity()
@@ -52,6 +55,10 @@ export class Campaign {
   @Field()
   status: CampaignStatus
 
+  @Column()
+  @Field(() => Int)
+  userId: number
+
   @CreateDateColumn({ type: 'timestamp' })
   @Transform(({ value }) => (value ? new Date(value).toLocaleString() : null), {
     toClassOnly: true,
@@ -70,12 +77,12 @@ export class Campaign {
   @Field(() => [Ad], { nullable: true })
   ads: Ad[]
 
-  @OneToMany(() => UserCampaign, userCampaign => userCampaign.campaign, {
-    nullable: true,
-    onDelete: 'SET NULL',
-  })
-  @Field(() => [UserCampaign], { nullable: true })
-  joinedCampaigns: UserCampaign[]
+  // @OneToMany(() => UserCampaign, userCampaign => userCampaign.campaign, {
+  //   nullable: true,
+  //   onDelete: 'SET NULL',
+  // })
+  // @Field(() => [UserCampaign], { nullable: true })
+  // joinedCampaigns: UserCampaign[]
 
   @OneToMany(() => Ticket, ticket => ticket.campaign, {
     nullable: true,
@@ -89,7 +96,12 @@ export class Campaign {
   })
   requests: PartnerRequest[]
 
-  @OneToMany(() => Partner, partner => partner.campaigns, { nullable: true })
+  @OneToMany(() => Partner, partner => partner.campaign, { nullable: true })
   @Field(() => [Partner], { nullable: true })
   partners: Partner[]
+
+  @ManyToOne(() => User, user => user.campaigns, { onDelete: 'SET NULL' })
+  @Field(() => User)
+  @JoinColumn({ name: 'userId' })
+  user: User
 }

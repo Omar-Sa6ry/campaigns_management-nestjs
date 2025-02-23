@@ -1,17 +1,20 @@
-import { Processor } from '@nestjs/bullmq'
+import { Processor, WorkerHost } from '@nestjs/bullmq'
 import { Job } from 'bullmq'
 import { Inject, Injectable } from '@nestjs/common'
 
 @Processor('notification')
 @Injectable()
-export class NotificationProcessor {
+export class NotificationProcessor extends WorkerHost {
   constructor (
     @Inject('FIREBASE_ADMIN')
     private readonly firebaseAdmin: { defaultApp: any },
-  ) {}
+  ) {
+    super()
+  }
 
   async process (job: Job): Promise<void> {
     const { fcmToken, title, body } = job.data
+
     try {
       await this.firebaseAdmin.defaultApp.messaging().send({
         notification: { title, body },

@@ -1,6 +1,12 @@
 import { Field, InputType } from '@nestjs/graphql'
-import { IsEmail, IsString, IsLowercase, Length, IsInt } from 'class-validator'
 import { PasswordValidator } from 'src/common/constant/messages.constant'
+import {
+  IsEmail,
+  IsString,
+  IsLowercase,
+  Length,
+  IsPhoneNumber,
+} from 'class-validator'
 
 @InputType()
 export class CreateUserDto {
@@ -14,8 +20,8 @@ export class CreateUserDto {
   email: string
 
   @Field()
-  @IsInt()
-  phone: number
+  @IsPhoneNumber()
+  phone: string
 
   @Field()
   @IsString()

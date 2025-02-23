@@ -7,7 +7,7 @@ import { Interaction } from 'src/modules/interaction/entity/interaction.entity'
 import { Partner } from 'src/modules/partner/entity/partner.entity'
 import { PartnerRequest } from 'src/modules/request/entity/partnerRequest.entity'
 import { Ticket } from 'src/modules/ticket/entity/ticket.entity'
-import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
+// import { UserCampaign } from 'src/modules/userCampaign/entity/userCampaign.entity'
 import { User } from 'src/modules/users/entity/user.entity'
 
 @Module({
@@ -24,7 +24,7 @@ import { User } from 'src/modules/users/entity/user.entity'
         entities: [
           User,
           Campaign,
-          UserCampaign,
+          // UserCampaign,
           Interaction,
           Partner,
           Ad,

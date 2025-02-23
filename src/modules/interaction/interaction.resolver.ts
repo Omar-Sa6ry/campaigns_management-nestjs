@@ -72,7 +72,11 @@ export class InteractionResolver {
       return { ...cachedInteraction }
     }
 
-    return this.interactionService.getUserInteractions(userId, page, limit)
+    return await this.interactionService.getUserInteractions(
+      userId,
+      page,
+      limit,
+    )
   }
 
   @Query(() => InteractionsResponse)
@@ -91,12 +95,26 @@ export class InteractionResolver {
     return this.interactionService.getUserInteractions(user.id, page, limit)
   }
 
-  @Query(() => Int)
+  @Query(() => InteractionResponse)
   @Auth(Role.USER, Role.ADMIN, Role.MANAGER)
-  async countAdInteractions (
+  async countAdViews (
     @Args('adId', { type: () => Int }) adId: number,
-  ): Promise<number> {
-    return this.interactionService.countAdInteractions(adId)
+  ): Promise<InteractionResponse> {
+    return {
+      message: `${await this.interactionService.countAdIViews(adId)}`,
+      data: null,
+    }
+  }
+
+  @Query(() => InteractionResponse)
+  @Auth(Role.USER, Role.ADMIN, Role.MANAGER)
+  async countAdCkicks (
+    @Args('adId', { type: () => Int }) adId: number,
+  ): Promise<InteractionResponse> {
+    return {
+      message: `${await this.interactionService.countAdClick(adId)}`,
+      data: null,
+    }
   }
 
   @Query(() => [MostInteractedDto])

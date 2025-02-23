@@ -1,4 +1,5 @@
 import { Field, InputType, Int } from '@nestjs/graphql'
+import { CampaignStatus } from 'src/common/constant/enum.constant'
 import { AdInput } from 'src/modules/ad/dtos/adInput.dto'
 import { Partner } from 'src/modules/partner/entity/partner.entity'
 
@@ -13,9 +14,8 @@ export class CampaignInput {
   @Field(() => String)
   description: string
 
-  @Field(() => String)
-  status: string
-
+  @Field(() => CampaignStatus)
+  status: CampaignStatus
   @Field(() => Date)
   startDate: Date
 

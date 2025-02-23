@@ -1,21 +1,15 @@
-import { Optional } from '@nestjs/common'
 import { Field, InputType, Int } from '@nestjs/graphql'
-import { IsString, IsInt,  IsPhoneNumber } from 'class-validator'
+import { IsString, IsInt, IsOptional } from 'class-validator'
 
 @InputType()
 export class PartnerDto {
-  @Optional()
-  @Field()
+  @IsOptional()
+  @Field({ nullable: true })
   @IsString()
-  name: string
+  name?: string
 
-  @Optional()
-  @Field(() => Int)
+  @IsOptional()
+  @Field(() => Int, { nullable: true })
   @IsInt()
-  campaignId: number
-
-  @Optional()
-  @Field(() => Int)
-  @IsPhoneNumber()
-  phone: number
+  campaignId?: number
 }

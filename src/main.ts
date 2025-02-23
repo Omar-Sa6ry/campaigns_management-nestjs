@@ -13,7 +13,7 @@ async function bootstrap () {
   app.use(graphqlUploadExpress({ maxFileSize: 1000000, maxFiles: 5 }))
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
 
-  await app.listen(3000)
+  await app.listen(3001)
 }
 
 bootstrap()

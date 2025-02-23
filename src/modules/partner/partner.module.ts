@@ -10,12 +10,13 @@ import { CampaignLoader } from 'src/modules/campaign/loader/campaign.loader'
 import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
 import { Ad } from '../ad/entity/ad.entity'
 import { CampaignModule } from '../campaign/campaign.module'
-import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
+// import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
 import { AdModule } from '../ad/ad.module'
+import { User } from '../users/entity/user.entity'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Partner, Ad, UserCampaign, Campaign]),
+    TypeOrmModule.forFeature([Partner, User, Ad,  Campaign]),
     RedisModule,
     UserModule,
     CampaignModule,

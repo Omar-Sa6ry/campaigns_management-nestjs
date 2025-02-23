@@ -3,9 +3,9 @@ import { Expose } from 'class-transformer'
 import { BaseResponse } from 'src/common/dtos/BaseResponse'
 import { IsOptional } from 'class-validator'
 import { PaginationInfo } from 'src/common/dtos/pagintion'
-import { AdInput } from 'src/modules/ad/dtos/adInput.dto'
 import { AdOutput } from 'src/modules/ad/dtos/adResponse.dto'
 import { Partner } from 'src/modules/partner/entity/partner.entity'
+import { CampaignStatus } from 'src/common/constant/enum.constant'
 
 @ObjectType()
 export class CampaignOutput {
@@ -18,8 +18,8 @@ export class CampaignOutput {
   @Field(() => String)
   description: string
 
-  @Field(() => String)
-  status: string
+  @Field(() => CampaignStatus)
+  status: CampaignStatus
 
   @Field(() => Date)
   startDate: Date
@@ -31,7 +31,7 @@ export class CampaignOutput {
   createdAt: Date
 
   @Field(() => [AdOutput], { nullable: true })
-  ads: AdInput[]
+  ads: AdOutput[]
 
   @Field(() => [Partner], { nullable: true })
   partners: Partner[]

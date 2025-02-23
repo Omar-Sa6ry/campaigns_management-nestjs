@@ -65,7 +65,11 @@ export class PartnerResolver {
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
     @Args('page', { type: () => Int, nullable: true }) page?: number,
   ): Promise<PartnersResponse> {
-    return this.partnerService.getPartnersWithData(partnerDto, limit, page)
+    return await this.partnerService.getPartnersWithData(
+      partnerDto,
+      limit,
+      page,
+    )
   }
 
   @Query(() => AdsResponse)

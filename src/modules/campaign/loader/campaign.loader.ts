@@ -1,5 +1,5 @@
 import * as DataLoader from 'dataloader'
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Campaign } from 'src/modules/campaign/entity/campaign.entity'
 import { Repository, In } from 'typeorm'
@@ -37,13 +37,14 @@ export class CampaignLoader {
 
         return keys.map(key => {
           const campaign = campaigns.find(c => c.id === key)
-          if (!campaign) return new Error(`Campaign with ID ${key} not found`)
+          if (!campaign)
+            throw new NotFoundException(`Campaign with ID ${key} not found`)
 
           const ad = adMap.get(campaign.id)
-          if (!ad) return new Error(AdNotFound)
+          if (!ad) throw new NotFoundException(AdNotFound)
 
           const partner = partnerMap.get(campaign.id)
-          if (!partner) return new Error(PartnerNotFound)
+          if (!partner) throw new NotFoundException(PartnerNotFound)
 
           return { ...campaign, ad, partner }
         })

@@ -4,7 +4,6 @@ import { BaseResponse } from 'src/common/dtos/BaseResponse'
 import { IsOptional } from 'class-validator'
 import { PaginationInfo } from 'src/common/dtos/pagintion'
 import { PartnerOutput } from 'src/modules/partner/dtos/partner.respone'
-import { PartnerInput } from 'src/modules/partner/input/partner.input'
 
 @ObjectType()
 export class RequestOutput {
@@ -18,7 +17,7 @@ export class RequestOutput {
   createdAt: Date
 
   @Field(() => PartnerOutput)
-  partner: PartnerInput
+  partner: PartnerOutput
 }
 
 @ObjectType()

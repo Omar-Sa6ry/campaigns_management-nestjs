@@ -14,12 +14,13 @@ export class PartnerOutput {
   @Field(() => String)
   name: string
 
-  @Field(() => Int)
-  phone: number
+  @Field()
+  phone: string
 
   @Field(() => Date)
   createdAt: Date
 
+  @Expose()
   @Field(() => CampaignOutput)
   campaign: CampaignInput
 }
@@ -28,7 +29,7 @@ export class PartnerOutput {
 export class PartnersResponse extends BaseResponse {
   @Field(() => [PartnerOutput], { nullable: true })
   @Expose()
-  items: PartnerOutput[]
+  items?: PartnerOutput[]
 
   @IsOptional()
   @Field(() => PaginationInfo, { nullable: true })

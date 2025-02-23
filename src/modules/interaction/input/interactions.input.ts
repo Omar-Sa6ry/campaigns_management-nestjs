@@ -1,17 +1,16 @@
-import { Field, InputType, Int } from '@nestjs/graphql'
+import { Field, InputType } from '@nestjs/graphql'
 import { InteractionInput } from './interaction.input'
+import { PaginationInfo } from 'src/common/dtos/pagintion'
+import { Expose } from 'class-transformer'
+import { IsOptional } from 'class-validator'
 
 @InputType()
 export class InteractionsInput {
   @Field(() => [InteractionInput], { nullable: true })
   items: InteractionInput[]
 
-  @Field(() => Int)
-  total: number
-
-  @Field(() => Int)
-  page: number
-
-  @Field(() => Int)
-  totalPages: number
+  @IsOptional()
+  @Field(() => PaginationInfo, { nullable: true })
+  @Expose()
+  pagination?: PaginationInfo
 }

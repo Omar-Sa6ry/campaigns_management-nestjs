@@ -1,3 +1,5 @@
+import { registerEnumType } from '@nestjs/graphql'
+
 export enum Role {
   USER = 'user',
   ADMIN = 'admin',
@@ -21,13 +23,6 @@ export enum PartnerStatus {
   REJECTED = 'rejected',
 }
 
-export enum AdType {
-  IMAGE = 'IMAGE',
-  VIDEO = 'VIDEO',
-  TEXT = 'TEXT',
-  BANNER = 'BANNER',
-}
-
 export enum TicketType {
   EXPIRED = 'expired',
   VAILD = 'valid',
@@ -47,3 +42,19 @@ export enum AdStatus {
   REJECTED = 'REJECTED',
   ARCHIVED = 'ARCHIVED',
 }
+
+export enum AdType {
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+  TEXT = 'TEXT',
+  BANNER = 'BANNER',
+}
+
+registerEnumType(Role, { name: 'Role' })
+registerEnumType(TicketType, { name: 'TicketType' })
+registerEnumType(InterActionType, { name: 'InterActionType' })
+registerEnumType(CampaignStatus, { name: 'CampaignStatus' })
+registerEnumType(PartnerStatus, { name: 'PartnerStatus' })
+registerEnumType(AdStatus, { name: 'AdStatus' })
+registerEnumType(AdType, { name: 'AdType' })
+registerEnumType(CampaignStatus, { name: 'CampaignStatus' })

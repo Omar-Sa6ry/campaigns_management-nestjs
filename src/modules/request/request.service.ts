@@ -74,10 +74,8 @@ export class PartnerRequestService {
       }
 
       const partner = await this.partnerService.create({
-        name: user.username,
         campaignId,
         userId: user.id,
-        phone: user.phone,
       })
 
       const request = this.partnerRequestRepo.create({
@@ -164,6 +162,7 @@ export class PartnerRequestService {
 
   async approvePartnership (
     requestId: number,
+    email: string,
     expireAt: Date,
   ): Promise<RequestInput> {
     const query = this.partnerRequestRepo.manager.connection.createQueryRunner()
@@ -171,7 +170,7 @@ export class PartnerRequestService {
 
     try {
       const request = await this.partnerRequestRepo.findOne({
-        where: { id: requestId },
+        where: { id: requestId, status: PartnerStatus.PENDING },
       })
       if (!request) throw new NotFoundException('Request not found')
 
@@ -197,6 +196,9 @@ export class PartnerRequestService {
         where: { campaignId: campaign.id },
       })
 
+      partner.status = PartnerStatus.APPROVES
+      await this.partnerRepo.save(partner)
+
       const ads = await this.adRepo.find({ where: { campaignId: campaign.id } })
       const partners = await this.partnerRepo.find({
         where: { campaignId: campaign.id },
@@ -215,7 +217,7 @@ export class PartnerRequestService {
         request,
       })
 
-      await this.ticketService.createTicket(user.id, {
+      await this.ticketService.createTicket(user.id, email, {
         campaignId: campaign.id,
         expireAt,
       })
@@ -242,7 +244,7 @@ export class PartnerRequestService {
 
     try {
       const request = await this.partnerRequestRepo.findOne({
-        where: { id: requestId },
+        where: { id: requestId, status: PartnerStatus.PENDING },
       })
       if (!request) throw new NotFoundException('Request not found')
 
@@ -267,6 +269,9 @@ export class PartnerRequestService {
       const partner = await this.partnerRepo.findOne({
         where: { campaignId: campaign.id },
       })
+
+      partner.status = PartnerStatus.REJECTED
+      await this.partnerRepo.save(partner)
 
       const ads = await this.adRepo.find({ where: { campaignId: campaign.id } })
       const partners = await this.partnerRepo.find({
@@ -316,7 +321,7 @@ export class PartnerRequestService {
     })
     if (data.length === 0) throw new NotFoundException(RequestsNotFound)
 
-    const requestIds = data.map(ad => ad.campaignId)
+    const requestIds = data.map(request => request.id)
     const requests = await this.requestLoader.loadMany(requestIds)
 
     const items: RequestInput[] = data.map((p, index) => {
@@ -326,6 +331,9 @@ export class PartnerRequestService {
       return request
     })
 
-    return { items, total, page, totalPages: Math.ceil(total / limit) }
+    return {
+      items,
+      pagination: { total, page, totalPages: Math.ceil(total / limit) },
+    }
   }
 }

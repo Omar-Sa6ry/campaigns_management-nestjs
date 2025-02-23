@@ -13,9 +13,10 @@ import { AdInput, AdsInput } from '../ad/dtos/adInput.dto'
 import { PartnerDto } from './dtos/Partner.dto'
 import { PartnersInput } from './input/partners.input'
 import { CampaignInput } from '../campaign/inputs/campain.input'
-import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
+// import { UserCampaign } from '../userCampaign/entity/userCampaign.entity'
 import { PartnerLoader } from 'src/modules/partner/loader/partner.loader'
 import { CampaignService } from '../campaign/campaign.service'
+import { User } from '../users/entity/user.entity'
 import { RedisService } from 'src/common/redis/redis.service'
 import { CampaignLoader } from 'src/modules/campaign/loader/campaign.loader'
 import { AdService } from '../ad/ad.service'
@@ -28,8 +29,8 @@ import {
   Page,
   PartnerNotFound,
   PartnersNotFound,
-  PhoneIsExisted,
-  UserCampaignsNotFound,
+  // UserCampaignsNotFound,
+  UserNotFound,
 } from 'src/common/constant/messages.constant'
 
 @Injectable()
@@ -41,10 +42,11 @@ export class PartnerService {
     private campaignService: CampaignService,
     private readonly redisService: RedisService,
     @InjectRepository(Ad) private adRepo: Repository<Ad>,
+    @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Campaign) private campaignRepo: Repository<Campaign>,
     @InjectRepository(Partner) private partnerRepo: Repository<Partner>,
-    @InjectRepository(UserCampaign)
-    private userCampaignRepo: Repository<UserCampaign>,
+    // @InjectRepository(UserCampaign)
+    // private userCampaignRepo: Repository<UserCampaign>,
   ) {}
 
   async create (createPartner: CreatePartnerDto): Promise<PartnerInput> {
@@ -52,24 +54,25 @@ export class PartnerService {
     await query.startTransaction()
 
     try {
-      const checkPhone = await this.partnerRepo.findOne({
-        where: { phone: createPartner.phone },
-      })
-      if (checkPhone) {
-        throw new BadRequestException(PhoneIsExisted)
-      }
-
       const campaign = await this.campaignRepo.findOne({
         where: { id: createPartner.campaignId },
       })
-      if (campaign) throw new BadRequestException(CampaignNotFound)
+      if (!campaign) throw new BadRequestException(CampaignNotFound)
 
-      const partner = await this.partnerRepo.create(createPartner)
+      const user = await this.userRepo.findOne({
+        where: { id: createPartner.userId },
+      })
+      if (!user) throw new BadRequestException(UserNotFound)
+
+      const partner = await this.partnerRepo.create({
+        ...createPartner,
+        name: user.username,
+        phone: user.phone,
+      })
       await this.partnerRepo.save(partner)
 
       const ads = await this.adRepo.find({
         where: { campaignId: campaign.id },
-        relations: ['campaign'],
       })
 
       const partners = await this.partnerRepo.find({
@@ -117,7 +120,7 @@ export class PartnerService {
     const campaign = await this.campaignRepo.findOne({
       where: { id: partner.campaignId },
     })
-    if (campaign) throw new BadRequestException(CampaignNotFound)
+    if (!campaign) throw new BadRequestException(CampaignNotFound)
 
     const ads = await this.adRepo.find({
       where: { campaignId: campaign.id },
@@ -163,7 +166,7 @@ export class PartnerService {
     })
     if (data.length === 0) throw new NotFoundException(PartnersNotFound)
 
-    const partnerIds = data.map(ad => ad.campaignId)
+    const partnerIds = data.map(partner => partner.id)
     const partners = await this.partnerLoader.loadMany(partnerIds)
 
     const items: PartnerInput[] = data.map((p, index) => {
@@ -173,7 +176,10 @@ export class PartnerService {
       return partner
     })
 
-    return { items, total, page, totalPages: Math.ceil(total / limit) }
+    return {
+      items,
+      pagination: { total, page, totalPages: Math.ceil(total / limit) },
+    }
   }
 
   async getPartners (
@@ -187,7 +193,7 @@ export class PartnerService {
     })
     if (data.length === 0) throw new NotFoundException(PartnersNotFound)
 
-    const partnerIds = data.map(ad => ad.campaignId)
+    const partnerIds = data.map(partner => partner.id)
     const partners = await this.partnerLoader.loadMany(partnerIds)
 
     const items: PartnerInput[] = await Promise.all(
@@ -198,7 +204,11 @@ export class PartnerService {
         return partner
       }),
     )
-    return { items, total, page, totalPages: Math.ceil(total / limit) }
+
+    return {
+      items,
+      pagination: { total, page, totalPages: Math.ceil(total / limit) },
+    }
   }
 
   async getPartnersFromUser (
@@ -206,20 +216,15 @@ export class PartnerService {
     page: number = Page,
     limit: number = Limit,
   ): Promise<PartnersInput> {
-    const [userCampaigns, total] = await this.userCampaignRepo.findAndCount({
+    const [data, total] = await this.partnerRepo.findAndCount({
       where: { userId },
       take: limit,
       skip: (page - 1) * limit,
-      order: { joinAt: 'DESC' },
+      order: { createdAt: 'DESC' },
     })
-    if (!userCampaigns) throw new BadRequestException(UserCampaignsNotFound)
+    if (data.length === 0) throw new NotFoundException(PartnersNotFound)
 
-    const campaignIds = userCampaigns.map(ad => ad.campaignId)
-    const campaigns = await this.campaignLoader.loadMany(campaignIds)
-
-    const partnerIds = campaigns
-      .map(campaign => campaign.partners.map(p => p.id))
-      .flat()
+    const partnerIds = data.map(partner => partner.id)
     const partners = await this.partnerLoader.loadMany(partnerIds)
 
     const items: PartnerInput[] = partners.map((p, index) => {
@@ -229,11 +234,14 @@ export class PartnerService {
       return partner
     })
 
-    const result = { items, total, page, totalPages: Math.ceil(total / limit) }
+    const result = {
+      items,
+      pagination: { total, page, totalPages: Math.ceil(total / limit) },
+    }
     const relationCacheKey = `partner-user:${userId}`
     await this.redisService.set(relationCacheKey, result)
 
-    return
+    return result
   }
 
   async getCampaignFromPartner (campaignId: number): Promise<CampaignInput> {

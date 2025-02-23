@@ -16,7 +16,7 @@ export class InteractionInput {
   user: User
 
   @Field(() => AdInput)
-  ad: AdInput
+  ads: AdInput
 
   @Field()
   createdAt: Date

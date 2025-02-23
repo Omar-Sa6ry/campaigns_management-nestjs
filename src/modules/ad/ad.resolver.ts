@@ -3,9 +3,8 @@ import { AdService } from './ad.service'
 import { AdInput, AdsInput } from './dtos/adInput.dto'
 import { CreateADto } from './dtos/createAd.dto'
 import { AdDto } from './dtos/Ad.dto'
-import { Ad } from './entity/ad.entity'
 import { CreateImagDto } from 'src/common/upload/dtos/createImage.dto'
-import { AdResponse, AdsResponse } from './dtos/adResponse.dto'
+import { AdOutput, AdResponse, AdsResponse } from './dtos/adResponse.dto'
 import { CreateAd } from 'src/common/constant/messages.constant'
 import { Role } from 'src/common/constant/enum.constant'
 import { Auth } from 'src/common/decerator/auth.decerator'
@@ -14,7 +13,7 @@ import { CurrentUser } from 'src/common/decerator/currentUser.decerator'
 import { CampaignResponse } from '../campaign/dtos/CampaignResponse'
 import { RedisService } from 'src/common/redis/redis.service'
 
-@Resolver(() => Ad)
+@Resolver(() => AdOutput)
 export class AdResolver {
   constructor (
     private readonly adService: AdService,
@@ -36,14 +35,17 @@ export class AdResolver {
 
   @Query(() => AdResponse)
   @Auth(Role.USER, Role.ADMIN, Role.MANAGER)
-  async getAd (@Args('id') id: number): Promise<AdResponse> {
+  async getAd (
+    @CurrentUser() user: CurrentUserDto,
+    @Args('id') id: number,
+  ): Promise<AdResponse> {
     const adCacheKey = `ad:${id}`
     const cachedAd = await this.redisService.get(adCacheKey)
     if (cachedAd instanceof AdInput) {
       return { data: cachedAd }
     }
 
-    return { data: await this.adService.getAdById(id) }
+    return { data: await this.adService.getAdById(id, user.id) }
   }
 
   @Query(() => AdsResponse)
@@ -65,21 +67,21 @@ export class AdResolver {
     return await this.adService.listAds(page, limit)
   }
 
-  @Query(() => AdsResponse)
-  @Auth(Role.ADMIN, Role.MANAGER)
-  async getAdsFromUserId (
-    @Args('userId') userId: number,
-    @Args('page', { type: () => Number, defaultValue: 1 }) page: number,
-    @Args('limit', { type: () => Number, defaultValue: 10 }) limit: number,
-  ): Promise<AdsResponse> {
-    const adCacheKey = `ad-user:${userId}`
-    const cachedAd = await this.redisService.get(adCacheKey)
-    if (cachedAd instanceof AdsInput) {
-      return { ...cachedAd }
-    }
+  // @Query(() => AdsResponse)
+  // @Auth(Role.ADMIN, Role.MANAGER)
+  // async getAdsFromUserId (
+  //   @Args('userId') userId: number,
+  //   @Args('page', { type: () => Number, defaultValue: 1 }) page: number,
+  //   @Args('limit', { type: () => Number, defaultValue: 10 }) limit: number,
+  // ): Promise<AdsResponse> {
+  //   const adCacheKey = `ad-user:${userId}`
+  //   const cachedAd = await this.redisService.get(adCacheKey)
+  //   if (cachedAd instanceof AdsInput) {
+  //     return { ...cachedAd }
+  //   }
 
-    return await this.adService.getAdsFromUser(userId, page, limit)
-  }
+  //   return await this.adService.getAdsFromUser(userId, page, limit)
+  // }
 
   @Query(() => AdsResponse)
   @Auth(Role.ADMIN, Role.MANAGER)
@@ -91,15 +93,15 @@ export class AdResolver {
     return await this.adService.getAdsFromCampaign(campaignId, page, limit)
   }
 
-  @Query(() => AdsResponse)
-  @Auth(Role.USER, Role.ADMIN, Role.MANAGER)
-  async getAdsFromUser (
-    @CurrentUser() user: CurrentUserDto,
-    @Args('page', { type: () => Number, defaultValue: 1 }) page: number,
-    @Args('limit', { type: () => Number, defaultValue: 10 }) limit: number,
-  ): Promise<AdsResponse> {
-    return await this.adService.getAdsFromUser(user.id, page, limit)
-  }
+  // @Query(() => AdsResponse)
+  // @Auth(Role.USER, Role.ADMIN, Role.MANAGER)
+  // async getAdsFromUser (
+  //   @CurrentUser() user: CurrentUserDto,
+  //   @Args('page', { type: () => Number, defaultValue: 1 }) page: number,
+  //   @Args('limit', { type: () => Number, defaultValue: 10 }) limit: number,
+  // ): Promise<AdsResponse> {
+  //   return await this.adService.getAdsFromUser(user.id, page, limit)
+  // }
 
   @Query(() => CampaignResponse)
   @Auth(Role.USER, Role.ADMIN, Role.MANAGER)
@@ -118,9 +120,9 @@ export class AdResolver {
     return { data: await this.adService.updateAd(id, updateAdDto) }
   }
 
-  @Mutation(() => String)
+  @Mutation(() => AdResponse)
   @Auth(Role.ADMIN, Role.MANAGER)
-  async deleteAd (@Args('id') id: number): Promise<string> {
-    return await this.adService.deleteAd(id)
+  async deleteAd (@Args('id') id: number): Promise<AdResponse> {
+    return { message: await this.adService.deleteAd(id), data: null }
   }
 }

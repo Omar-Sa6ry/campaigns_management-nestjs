@@ -7,31 +7,39 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Interaction } from './entity/interaction.entity'
 import { InteractionInput } from './input/interaction.input'
-import { AdService } from '../ad/ad.service'
 import { InteractionsInput } from './input/interactions.input'
 import { RedisService } from 'src/common/redis/redis.service'
 import { WebSocketMessageGateway } from 'src/common/websocket/websocket.gateway'
+import { InterActionType } from 'src/common/constant/enum.constant'
 import { InteractionLoader } from './loader/interaction.loader'
+import { Ad } from '../ad/entity/ad.entity'
+import { Campaign } from '../campaign/entity/campaign.entity'
 import { MostInteractedDto } from './input/mostInteraction.dto'
 import { User } from '../users/entity/user.entity'
 import { CreateInteractionDto } from './dtos/createInteraction.dto'
 import {
   AdNotFound,
+  CampaignNotFound,
   InteractionNotFound,
   InteractionsNotFound,
   Limit,
   Page,
   UserNotFound,
 } from 'src/common/constant/messages.constant'
+import { Partner } from '../partner/entity/partner.entity'
 
 @Injectable()
 export class InteractionService {
   constructor (
-    private readonly adService: AdService,
     private readonly interactionLoader: InteractionLoader,
     private readonly redisService: RedisService,
     private readonly websocketGateway: WebSocketMessageGateway,
+    @InjectRepository(Ad) private readonly adRepo: Repository<Ad>,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
+    @InjectRepository(Partner)
+    private readonly partnerRepo: Repository<Partner>,
+    @InjectRepository(Campaign)
+    private readonly campaignRepo: Repository<Campaign>,
     @InjectRepository(Interaction)
     private readonly interactionRepo: Repository<Interaction>,
   ) {}
@@ -44,18 +52,30 @@ export class InteractionService {
     await query.startTransaction()
 
     try {
-      const ad = await this.adService.getAdById(interactionDto.adId)
-      if (!ad) throw new NotFoundException(AdNotFound)
+      const exist = await this.interactionRepo.findOne({
+        where: { adId: interactionDto.adId, userId, type: interactionDto.type },
+      })
+      if (exist) {
+        return null
+      }
+
+      const ads = await this.adRepo.findOne({
+        where: { id: interactionDto.adId },
+      })
+      if (!ads) throw new NotFoundException(AdNotFound)
 
       const user = await this.userRepo.findOne({
         where: { id: userId },
       })
       if (!user) throw new NotFoundException(UserNotFound)
 
-      const interaction = this.interactionRepo.create(interactionDto)
+      const interaction = await this.interactionRepo.create({
+        userId,
+        ...interactionDto,
+      })
       await this.interactionRepo.save(interaction)
 
-      const result = { ...interaction, user, ad }
+      const result = { ...interaction, user, ads }
       const relationCacheKey = `interaction:${interaction.id}`
       await this.redisService.set(relationCacheKey, result)
 
@@ -81,15 +101,32 @@ export class InteractionService {
 
     if (!interaction) throw new NotFoundException(InteractionNotFound)
 
-    const ad = await this.adService.getAdById(interaction.adId)
+    const ad = await this.adRepo.findOne({ where: { id: interaction.adId } })
     const user = await this.userRepo.findOne({
       where: { id: interaction.userId },
     })
 
-    return { ...interaction, ad, user }
+    const campaign = await this.campaignRepo.findOne({
+      where: { id: ad.campaignId },
+    })
+    if (!campaign) throw new NotFoundException(CampaignNotFound)
+
+    const ads = await this.adRepo.find({ where: { campaignId: campaign.id } })
+    const partners = await this.partnerRepo.find({
+      where: { campaignId: campaign.id },
+    })
+
+    return {
+      ...interaction,
+      ads: { ...ad, campaign: { ...campaign, ads, partners } },
+      user,
+    }
   }
 
-  async get (page: number = Page, limit: number = Limit): Promise<InteractionsInput> {
+  async get (
+    page: number = Page,
+    limit: number = Limit,
+  ): Promise<InteractionsInput> {
     const [data, total] = await this.interactionRepo.findAndCount({
       take: limit,
       skip: (page - 1) * limit,
@@ -107,7 +144,10 @@ export class InteractionService {
       return interaction
     })
 
-    return { items, total, page, totalPages: Math.ceil(total / limit) }
+    return {
+      items,
+      pagination: { total, page, totalPages: Math.ceil(total / limit) },
+    }
   }
 
   async getUserInteractions (
@@ -133,26 +173,41 @@ export class InteractionService {
       return interaction
     })
 
-    const result = { items, total, page, totalPages: Math.ceil(total / limit) }
+    const result = {
+      items,
+      pagination: { total, page, totalPages: Math.ceil(total / limit) },
+    }
     const relationCacheKey = `interaction-user:${userId}`
     await this.redisService.set(relationCacheKey, result)
 
     return result
   }
 
-  async countAdInteractions (adId: number): Promise<number> {
-    const ad = await this.adService.getAdById(adId)
+  async countAdClick (adId: number): Promise<number> {
+    const ad = await this.adRepo.findOne({ where: { id: adId } })
     if (!ad) throw new BadRequestException(AdNotFound)
 
-    return (await this.interactionRepo.count({ where: { adId } })) || 0
+    return (
+      (await this.interactionRepo.count({
+        where: { adId, type: InterActionType.CLICK },
+      })) || 0
+    )
+  }
+
+  async countAdIViews (adId: number): Promise<number> {
+    const ad = await this.adRepo.findOne({ where: { id: adId } })
+    if (!ad) throw new BadRequestException(AdNotFound)
+
+    const result = (await this.interactionRepo.count({ where: { adId } })) || 0
+    return result
   }
 
   async getMostInteractedAds (limit: number = 10): Promise<MostInteractedDto[]> {
     // Sql Query
     // SELECT
-    //     interaction.adId,
-    //     COUNT(interaction.id) AS count
-    // FROM interactions AS interaction
+    //     adId,
+    //     COUNT(id) AS count
+     // FROM  interaction
     // GROUP BY interaction.adId
     // ORDER BY count DESC
     // LIMIT 10;

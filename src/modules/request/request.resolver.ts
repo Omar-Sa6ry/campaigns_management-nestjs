@@ -52,11 +52,13 @@ export class PartnerRequestResolver {
   async approvePartnership (
     @Args('requestId') requestId: number,
     @Args('expireAt') expireAt: Date,
+    @Args('email') email: string,
   ): Promise<RequestResponse> {
     return {
       message: RequestApprove,
       data: await this.partnerRequestService.approvePartnership(
         requestId,
+        email,
         expireAt,
       ),
     }

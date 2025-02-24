@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql'
+import { Resolver, Query, Mutation, Args, Int, Context } from '@nestjs/graphql'
 import { CampaignService } from './campaign.service'
 import { Campaign } from './entity/campaign.entity'
 import { RedisService } from 'src/common/redis/redis.service'
@@ -9,15 +9,14 @@ import { CampaignDto } from './dtos/Campaign.dto'
 import { Auth } from 'src/common/decerator/auth.decerator'
 import { Role } from 'src/common/constant/enum.constant'
 import { CampaignResponse, CampaignsResponse } from './dtos/CampaignResponse'
-import {
-  CreateCampaign,
-  UpdatedCampaign,
-} from 'src/common/constant/messages.constant'
+import { UpdatedCampaign } from 'src/common/constant/messages.constant'
+import { I18nService } from 'nestjs-i18n'
 
 @Resolver(() => Campaign)
 export class CampaignResolver {
   constructor (
     private readonly redisService: RedisService,
+    private readonly i18n: I18nService,
     private readonly campaignService: CampaignService,
   ) {}
 
@@ -25,13 +24,13 @@ export class CampaignResolver {
   @Auth(Role.ADMIN, Role.MANAGER)
   async createCampaign (
     @Args('createCampaignDto') createCampaignDto: CreateCampaignCDto,
-      @CurrentUser() user: CurrentUserDto,
+    @CurrentUser() user: CurrentUserDto,
   ): Promise<CampaignResponse> {
-    const data = await this.campaignService.create(createCampaignDto,user.id)
+    const data = await this.campaignService.create(createCampaignDto, user.id)
 
     return {
       statusCode: 201,
-      message: CreateCampaign,
+      message: await this.i18n.translate('campaign.CREATED'),
       data,
     }
   }
@@ -39,6 +38,7 @@ export class CampaignResolver {
   @Query(() => CampaignResponse)
   @Auth(Role.USER, Role.ADMIN, Role.MANAGER)
   async getCampaignById (
+    @Context() context,
     @Args('id', { type: () => Int }) id: number,
   ): Promise<CampaignResponse> {
     const campaignCacheKey = `campaign:${id}`
@@ -48,7 +48,10 @@ export class CampaignResolver {
     }
 
     const data = await this.campaignService.getCampainById(id)
-    return { data }
+
+    return {
+      data,
+    }
   }
 
   @Query(() => CampaignsResponse)

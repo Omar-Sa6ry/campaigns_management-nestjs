@@ -15,6 +15,7 @@ import { InteractionModule } from './modules/interaction/interaction.module'
 import { TicketModule } from './modules/ticket/ticket.module'
 import { PartnerRequestModule } from './modules/request/request.module'
 import { ScheduleModule } from '@nestjs/schedule'
+import { TranslationModule } from './common/translation/translation.module'
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ScheduleModule } from '@nestjs/schedule'
     GraphqlModule,
     DataBaseModule,
     ThrottlerModule,
+    TranslationModule,
     ScheduleModule.forRoot(),
 
     AuthModule,

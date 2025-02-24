@@ -8,7 +8,10 @@ import { join } from 'path'
     GraphQLModule.forRoot({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      context: ({ req }) => ({ req }),
+      context: ({ req }) => ({
+        req,
+        language: req.headers['accept-language'] || 'en',
+      }),
       playground: true,
       uploads: true,
       debug: true,

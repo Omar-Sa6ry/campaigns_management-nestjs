@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { WebSocketMessageGateway } from 'src/common/websocket/websocket.gateway'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Campaign } from './entity/campaign.entity'
@@ -65,6 +69,7 @@ export class CampaignService {
         userId,
         startDate: tomorrow,
       })
+
       await this.campaignRepo.save(campaign)
 
       const relationCacheKey = `campaign:${campaign.id}`
